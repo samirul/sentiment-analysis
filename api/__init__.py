@@ -6,8 +6,8 @@
 
 import os
 from flask import Flask
-from .celery_task.celery_ import celery_init_app
 from dotenv import load_dotenv
+from .celery_task.celery_ import celery_init_app
 
 # Added environment variable
 load_dotenv()
