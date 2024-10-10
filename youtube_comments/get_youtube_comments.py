@@ -26,5 +26,5 @@ class Comments:
             comments = item['snippet']['topLevelComment']['snippet']['textDisplay']
             queue.append(comments)
         
-        return [queue]
+        return queue
     

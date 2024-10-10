@@ -5,6 +5,6 @@
 from collections import deque
 
 queue = deque()
-
-for _ in len(queue):
+# Not necessary but for safe side to make sure deque is clean before executing another queue/deque
+while queue:
     queue.popleft()
