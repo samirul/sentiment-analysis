@@ -23,11 +23,13 @@ class Filter:
             Responsible for cleaning all the text.
         '''
         text = self.text.lower() # converting every text into smaller case
-        remove_special_characters_from_text = re.sub(r"\W+", ' ', text) # removing special characters from the text
+        removing_urls = re.sub(r"http\S+|www\S+|https\S+", '', text, flags=re.MULTILINE) # removing urls from the text
+        removing_href = re.sub(r"href+",'', removing_urls) # removing href from the text
+        remove_special_characters_from_text = re.sub(r"\W+", ' ', removing_href) # removing special characters from the text
         remove_digits_from_text = re.sub(r"\d+", '', remove_special_characters_from_text) # removing digits from the text
         removing_emojis = re.sub(r"[^\x00-\x7F]+", '', remove_digits_from_text) # removing emojis from the text
-        removing_urls = re.sub(r"http\S+|www\S+|https\S+", '', removing_emojis, flags=re.MULTILINE) # removing urls from the text
-        cleaned_text = removing_urls
+        
+        cleaned_text = removing_emojis
         tokenize_text = word_tokenize(cleaned_text) # tokenizing text or breaking into words
         # removing stop words
         removing_stop_words_from_tokenize_text = [words for words in tokenize_text if words not in self.stop_words]
