@@ -7,6 +7,7 @@
 import os
 from flask import Flask
 from dotenv import load_dotenv
+from pymongo import MongoClient
 from .celery_task.celery_ import celery_init_app
 
 # Added environment variable
@@ -26,7 +27,15 @@ app.config.from_mapping(
 # Created celery app
 celery_app = celery_init_app(app)
 
-# added flask secret key in env
+# Added flask secret key in env
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY')
 
+# Added mongoclient 
+client = MongoClient('localhost', 27017)
 
+# Creating mongo database
+
+db = client.sentiment_analysis_db
+
+# Created mongo database collection
+sentiment_analysis_db = db.sentiment_analysis
