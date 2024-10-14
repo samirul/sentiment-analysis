@@ -37,7 +37,7 @@ class Filter:
         lemmatize_words = [self.lemmatizer.lemmatize(removed_stop_words_) for removed_stop_words_ in removing_stop_words_from_tokenize_text]
         cleaned_final_text = " ".join(lemmatize_words) # joining all the cleaned words back to final text
 
-        return cleaned_final_text
+        yield cleaned_final_text
 
 
 
