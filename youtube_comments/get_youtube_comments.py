@@ -28,3 +28,10 @@ class Comments:
         
         return queue
     
+    def fetch_title(self):
+        request = self.youtube.videos().list(part='snippet,statistics', id=self.video_id) # pylint: disable=E1101
+        response = request.execute()
+        title = response['items'][0]['snippet']['title']
+        return title
+    
+    
