@@ -39,3 +39,5 @@ db = client.sentiment_analysis_db
 
 # Created mongo database collection
 sentiment_analysis_db = db.sentiment_analysis
+
+from api import routes
