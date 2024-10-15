@@ -21,7 +21,7 @@ class Procressing:
              sentiment_analysis = SentiMental(text=listed_cleaned_data, device=self.device, top_k=self.top_k)
              sentiment_analysis_main_data = sentiment_analysis.result_data_convertion().split(',', maxsplit=1)[0] #
              sentiment_analysis_aditional_data = ", ".join([item.strip() for item in sentiment_analysis.result_data_convertion().split(',')[1:]])
-             sentiment_analysis_db.insert_one({"video_titles": titles, "comment": "".join(listed_cleaned_data), "main_result": sentiment_analysis_main_data, "other_result": sentiment_analysis_aditional_data})
+             sentiment_analysis_db.insert_one({"video_title": titles, "comment": "".join(listed_cleaned_data), "main_result": sentiment_analysis_main_data, "other_result": sentiment_analysis_aditional_data})
         return "Done"
 
 
