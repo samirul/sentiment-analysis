@@ -19,11 +19,8 @@ class Procressing:
              listed_cleaned_data = list(cleaned_data.clean()) #
              sentiment_analysis = SentiMental(text=listed_cleaned_data, device=self.device, top_k=self.top_k)
              sentiment_analysis_main_data = sentiment_analysis.result_data_convertion().split(',', maxsplit=1)[0] #
-             sentiment_analysis_aditional_data = ", ".join([item.strip() for item in sentiment_analysis.result_data_convertion().split(',')[1:]]) #
-             print("".join(listed_cleaned_data))
-             print(sentiment_analysis_main_data)
-             print(sentiment_analysis_aditional_data)
-             save_data = sentiment_analysis_db.insert_one({"comment": "".join(listed_cleaned_data), "main_result": sentiment_analysis_main_data, "other_result": sentiment_analysis_aditional_data})
+             sentiment_analysis_aditional_data = ", ".join([item.strip() for item in sentiment_analysis.result_data_convertion().split(',')[1:]])
+             sentiment_analysis_db.insert_one({"comment": "".join(listed_cleaned_data), "main_result": sentiment_analysis_main_data, "other_result": sentiment_analysis_aditional_data})
         return "Done"
 
 
