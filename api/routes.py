@@ -6,7 +6,7 @@ from api.tasks import task_celery_execute
 def analysis_comments_from_youtube():
     try:
         inputed_text = request.json.get("url")
-        result = task_celery_execute.delay(video_id=inputed_text)
+        result = task_celery_execute.delay(video_url=inputed_text)
         return jsonify({"msg": "Success", "result_id": result.id}),200
     except Exception as e:
         print(e)
