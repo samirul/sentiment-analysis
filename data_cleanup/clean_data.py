@@ -1,6 +1,6 @@
-'''
+"""
     Clean all bad/garbage texts to clean texts for analysis.
-'''
+"""
 
 import re
 from nltk.corpus import stopwords
@@ -8,9 +8,11 @@ from nltk.tokenize import word_tokenize
 from nltk.stem import WordNetLemmatizer
 
 class Filter:
-    '''
-        Filter class for filtering garbage text to clean text.
-    '''
+    """Filter class for filtering garbage text to clean text.
+
+    Yields:
+        generator: "generates filtered/cleaned data one by one or at a time."
+    """
     def __init__(self, text):
         self.text = text
         # initializing lemmatizer
@@ -19,9 +21,11 @@ class Filter:
         self.stop_words = set(stopwords.words('english'))
 
     def clean(self):
-        '''
-            Responsible for cleaning all the text.
-        '''
+        """Responsible for cleaning all the text.
+
+        Yields:
+            generator: "function generates filtered/cleaned data one by one or at a time."
+        """
         text = self.text.lower() # converting every text into smaller case
         removing_urls = re.sub(r"http\S+|www\S+|https\S+", '', text, flags=re.MULTILINE) # removing urls from the text
         removing_href = re.sub(r"href+",'', removing_urls) # removing href from the text

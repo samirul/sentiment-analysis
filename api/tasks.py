@@ -1,11 +1,11 @@
-'''
+"""
     Using celery task for fetching youtube comments from video
     using Youtube API and analysing comments using pretrained
     sentiment-analysis models from hugging face.
     After then saving results on MongoDB and converting to API
     using flask 
 
-'''
+"""
 
 from celery import shared_task
 from data_cleanup.clean_data import Filter
@@ -16,9 +16,7 @@ from url_id_extractor.id_extract import get_id
 
 
 class Procressing:
-    '''
-        Intializing some required parameters
-    '''
+    """Intializing some required parameters"""
     def __init__(self, video_url, max_len=20, device='cuda', top_k=None):
         self.video_id = get_id(video_url)
         self.video_url = video_url
@@ -27,9 +25,12 @@ class Procressing:
         self.top_k = top_k
 
     def task(self):
-        '''
-            Function for responsible executing celery task within class member
-        '''
+        """Function for responsible executing celery task within class member
+
+        Returns:
+            returns: It execute and run task of sentiment analysis
+            and save on MongoDB and then returns Done
+        """
         comments = self.comments.fetch_comments()
         titles = self.comments.fetch_title()
         while comments:
@@ -45,9 +46,12 @@ class Procressing:
 
 @shared_task(ignore_result=False)
 def task_celery_execute(video_url, max_len=20):
-    '''
-        Function for warping up celery "shared_task" for excecuting
+    """Function for warping up celery "shared_task" for excecuting
         celery task
-    '''
+
+    Args:
+        video_url (Link): Youtube video url
+        max_len (int, optional): max fetching youtube comments. Defaults to 20.
+    """
     process = Procressing(video_url=video_url, max_len=max_len)
     process.task()

@@ -1,13 +1,19 @@
-'''
+"""
     get video id from youtube video url
-'''
+"""
 
 from urllib.parse import urlparse, parse_qs
 
 def get_id(url):
-    '''
-        function for extract id from url
-    '''
+    """function for extract id from the url
+
+    Args:
+        url (Link): Getting the url link as parameter
+
+    Returns:
+        return: returning the url id after extracting from
+        url the link using urllib else returning None 
+    """
     normal_url = ['www.youtube.com', 'youtube.com']
     url_parsed = urlparse(url=url)
     # getting id from sorted video url

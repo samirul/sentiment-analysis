@@ -1,8 +1,8 @@
-'''
+"""
     Imported required libraries
     Added flask and celery on __init__ files so they will run before anything else
     also can br imported as package
-'''
+"""
 
 import os
 from flask import Flask

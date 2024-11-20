@@ -1,6 +1,6 @@
-'''
+"""
     Will execute before fetching youtube comments
-'''
+"""
 
 from collections import deque
 
