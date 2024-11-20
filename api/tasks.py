@@ -13,6 +13,7 @@ from sentiment_analysis.sentiment import SentiMental
 from youtube_comments.get_youtube_comments import Comments
 from api import sentiment_analysis_db
 from url_id_extractor.id_extract import get_id
+from .producers import RabbitMQConnection
 
 
 class Procressing:
@@ -23,6 +24,7 @@ class Procressing:
         self.comments = Comments(video_id=self.video_id, max_len=max_len)
         self.device = device
         self.top_k = top_k
+        self.publish = RabbitMQConnection()
 
     def task(self):
         """Function for responsible executing celery task within class member
@@ -40,7 +42,8 @@ class Procressing:
              sentiment_analysis = SentiMental(text=listed_cleaned_data, device=self.device, top_k=self.top_k)
              sentiment_analysis_main_data = sentiment_analysis.result_data_convertion().split(',', maxsplit=1)[0] #
              sentiment_analysis_aditional_data = ", ".join([item.strip() for item in sentiment_analysis.result_data_convertion().split(',')[1:]])
-             sentiment_analysis_db.insert_one({"video_title": titles, "video_url": self.video_url, "comment": "".join(listed_cleaned_data), "main_result": sentiment_analysis_main_data, "other_result": sentiment_analysis_aditional_data})
+             data = sentiment_analysis_db.insert_one({"video_title": titles, "video_url": self.video_url, "comment": "".join(listed_cleaned_data), "main_result": sentiment_analysis_main_data, "other_result": sentiment_analysis_aditional_data})
+             self.publish.publish(method="task_data_saved", body=data)
         return "Done"
 
 
