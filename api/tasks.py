@@ -31,21 +31,25 @@ class Procressing:
 
         Returns:
             returns: It execute and run task of sentiment analysis
-            and save on MongoDB and then returns Done
+            and save on MongoDB and then returns Done, else will throw 
+            an exception
         """
-        comments = self.comments.fetch_comments()
-        titles = self.comments.fetch_title()
-        while comments:
-             data = comments.popleft() # getting unfiltered datas from queue
-             cleaned_data = Filter(text=data) # filtering unfiltered data
-             listed_cleaned_data = list(cleaned_data.clean()) # cleaned data
-             sentiment_analysis = SentiMental(text=listed_cleaned_data, device=self.device, top_k=self.top_k)
-             sentiment_analysis_main_data = sentiment_analysis.result_data_convertion().split(',', maxsplit=1)[0] #
-             sentiment_analysis_aditional_data = ", ".join([item.strip() for item in sentiment_analysis.result_data_convertion().split(',')[1:]])
-             data = sentiment_analysis_db.insert_one({"video_title": titles, "video_url": self.video_url, "comment": "".join(listed_cleaned_data), "main_result": sentiment_analysis_main_data, "other_result": sentiment_analysis_aditional_data})
-             data_inserted = sentiment_analysis_db.find_one({"_id": data.inserted_id})
-             self.publish.publish(method="task_data_saved", body=data_inserted)
-        return "Done"
+        try:
+            comments = self.comments.fetch_comments()
+            titles = self.comments.fetch_title()
+            while comments:
+                data = comments.popleft() # getting unfiltered datas from queue
+                cleaned_data = Filter(text=data) # filtering unfiltered data
+                listed_cleaned_data = list(cleaned_data.clean()) # cleaned data
+                sentiment_analysis = SentiMental(text=listed_cleaned_data, device=self.device, top_k=self.top_k)
+                sentiment_analysis_main_data = sentiment_analysis.result_data_convertion().split(',', maxsplit=1)[0] #
+                sentiment_analysis_aditional_data = ", ".join([item.strip() for item in sentiment_analysis.result_data_convertion().split(',')[1:]])
+                data = sentiment_analysis_db.insert_one({"video_title": titles, "video_url": self.video_url, "comment": "".join(listed_cleaned_data), "main_result": sentiment_analysis_main_data, "other_result": sentiment_analysis_aditional_data})
+                data_inserted = sentiment_analysis_db.find_one({"_id": data.inserted_id})
+                self.publish.publish(method="task_data_saved", body=data_inserted)
+            return "Done"
+        except Exception as e:
+            return e
 
 
 @shared_task(ignore_result=False)
