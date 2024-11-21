@@ -49,9 +49,12 @@ class Procressing:
                 "comment": "".join(listed_cleaned_data), "main_result": sentiment_analysis_main_data,
                 "other_result": sentiment_analysis_aditional_data, "user": uuid.UUID(self.payload['user_id'])})
                 data_inserted = sentiment_analysis_db.find_one({"_id": data.inserted_id})
+                if isinstance(data_inserted["user"], uuid.UUID):
+                    data_inserted["user"] = str(data_inserted["user"])
                 self.publish.publish(method="task_data_saved", body=data_inserted)
             return "Done"
         except Exception as e:
+            print(f"Something Wrong: {e}")
             return e
 
 

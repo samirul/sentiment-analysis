@@ -3,6 +3,7 @@
     and for writing certain logics.
 
 """
+import uuid
 import json
 from collections import OrderedDict
 from flask import request, jsonify, Response
@@ -42,7 +43,7 @@ def get_all_comments_and_results(payload):
     """
     try:
         data = []
-        comments = sentiment_analysis_db.find({"user": payload['user_id']})
+        comments = sentiment_analysis_db.find({"user": uuid.UUID(payload['user_id'])})
         if sentiment_analysis_db.count_documents({}) == 0:
             response_data = json.dumps({"msg": "data is not found."}, indent=4)
             return Response(response_data, status=404, mimetype='application/json')
