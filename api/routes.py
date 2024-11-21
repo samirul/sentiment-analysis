@@ -7,9 +7,11 @@
 from flask import request, jsonify
 from api import app
 from api.tasks import task_celery_execute
+from jwt_token.jwt_token_verify import jwt_login_required
 
 @app.route("/analysis-youtube-comments", methods=["POST"])
-def analysis_comments_from_youtube():
+@jwt_login_required
+def analysis_comments_from_youtube(payload):
     """Responsible for executing celery task sentiment analysis. 
 
     Returns:
@@ -19,7 +21,7 @@ def analysis_comments_from_youtube():
     """
     try:
         inputed_text = request.json.get("url")
-        result = task_celery_execute.delay(video_url=inputed_text)
+        result = task_celery_execute.delay(video_url=inputed_text, payload=payload)
         return jsonify({"msg": "Success", "result_id": result.id}),200
     except Exception as e:
         print(e)
