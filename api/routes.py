@@ -33,13 +33,15 @@ def analysis_comments_from_youtube(payload):
 @app.route("/all-youtube-comments-results", methods=['GET'])
 @jwt_login_required
 def get_all_comments_and_results(payload):
-    """Get all the data from MongoDB database
+    """Get all the data from MongoDB database.
 
     Args:
-        payload (string): get user_id from 
+        payload (string): Get user_id from payload after authentication. 
 
     Returns:
-        _type_: _description_
+        return: Return all the data (200) from mongodb by searching user_id else
+        return no data found (404) or something wrong happened exception or bad
+        request (400).
     """
     try:
         data = []
