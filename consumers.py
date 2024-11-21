@@ -1,7 +1,7 @@
 """
     This class responsible for receiving data from django application youtools.
 """
-
+import uuid
 import json
 import os
 import pika
@@ -27,7 +27,7 @@ class RabbitMQConsumer:
                     if properties.type == 'user_is_created':
                         print("Task executing, please wait....")
                         data = json.loads(body)
-                        user.insert_one({'_id': data['id'], 'username': data['username'], 'email': data['email']})
+                        user.insert_one({'_id': uuid.UUID(data['id']), 'username': data['username'], 'email': data['email']})
                         print("User inserted successfully")
                     
                 except Exception as e:

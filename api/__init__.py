@@ -31,7 +31,7 @@ celery_app = celery_init_app(app)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY')
 
 # Added mongoclient 
-client = MongoClient('localhost', 27017)
+client = MongoClient('localhost', 27017, uuidRepresentation="standard")
 
 # Creating mongo database
 

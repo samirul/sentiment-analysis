@@ -6,7 +6,7 @@
     using flask 
 
 """
-
+import uuid
 from celery import shared_task
 from data_cleanup.clean_data import Filter
 from sentiment_analysis.sentiment import SentiMental
@@ -47,7 +47,7 @@ class Procressing:
                 sentiment_analysis_aditional_data = ", ".join([item.strip() for item in sentiment_analysis.result_data_convertion().split(',')[1:]])
                 data = sentiment_analysis_db.insert_one({"video_title": titles, "video_url": self.video_url,
                 "comment": "".join(listed_cleaned_data), "main_result": sentiment_analysis_main_data,
-                "other_result": sentiment_analysis_aditional_data, "user": self.payload['user_id']})
+                "other_result": sentiment_analysis_aditional_data, "user": uuid.UUID(self.payload['user_id'])})
                 data_inserted = sentiment_analysis_db.find_one({"_id": data.inserted_id})
                 self.publish.publish(method="task_data_saved", body=data_inserted)
             return "Done"
