@@ -39,7 +39,7 @@ def get_all_comments_and_results(payload):
     """Get all the data from MongoDB database.
 
     Args:
-        payload (string): Get user_id from payload after authentication. 
+        payload (UUID): Get user_id from payload after authentication. 
 
     Returns:
         return: Return all the data (200) from mongodb by searching user_id else
@@ -78,10 +78,10 @@ def get_single_comment_and_result(ids, payload):
 
     Args:
         ids (ObjectID): Get single mongoDB object id to filter out a single data from MongoDB database.
-        payload (string): Get user_id from payload after authentication.
+        payload (UUID): Get user_id from payload after authentication.
 
     Returns:
-        return: return: Return single data (200) from mongodb by searching comment id and user_id else
+        return: Return single data (200) from mongodb by searching comment id and user_id else
         return no data found (404) or something wrong happened exception or bad
         request (400).
     """
@@ -103,6 +103,33 @@ def get_single_comment_and_result(ids, payload):
         data.append(dict_item)
         response_data = json.dumps({"data": data}, indent=4)
         return Response(response_data, status=200, mimetype='application/json')
+    except Exception as e:
+        print(e)
+        response_data = json.dumps({"msg": "Something is wrong or bad request"}, indent=4)
+        return Response(response_data, status=400, mimetype='application/json')
+
+
+@app.route("/delete-comment/<ids>", methods=['POST'])
+@jwt_login_required
+def delete_single_comment(ids, payload):
+    """Delete single data from MongoDB database.
+
+    Args:
+        ids (ObjectID): Get single mongoDB object id to filter out a single data from MongoDB database.
+        payload (UUID): Get user_id from payload after authentication.
+
+    Returns:
+        return: Finding the single data from mongodb by searching comment id and user_id then
+        deleting that data (204) else return no data found (404) or something wrong happened exception or bad
+        request (400).
+    """
+    try:
+        comment = sentiment_analysis_db.find_one({"_id": ObjectId(ids), "user": uuid.UUID(payload['user_id'])})
+        if comment is None:
+            response_data = json.dumps({"msg": "data is not found."}, indent=4)
+            return Response(response_data, status=404, mimetype='application/json')
+        sentiment_analysis_db.delete_one({"_id": ObjectId(ids)})
+        return Response({}, status=204, mimetype='application/json')
     except Exception as e:
         print(e)
         response_data = json.dumps({"msg": "Something is wrong or bad request"}, indent=4)
