@@ -6,6 +6,7 @@
 import uuid
 import json
 from collections import OrderedDict
+from bson.objectid import ObjectId
 from flask import request, jsonify, Response
 from api import app, sentiment_analysis_db
 from api.tasks import task_celery_execute
@@ -29,6 +30,8 @@ def analysis_comments_from_youtube(payload):
         print(e)
         response_data = json.dumps({"msg": "Something is wrong or bad request"}, indent=4)
         return Response(response_data, status=400, mimetype='application/json')
+    
+
     
 @app.route("/all-youtube-comments-results", methods=['GET'])
 @jwt_login_required
@@ -60,6 +63,44 @@ def get_all_comments_and_results(payload):
                 ("user", str(comment["user"])),
             ])  
             data.append(dict_items)
+        response_data = json.dumps({"data": data}, indent=4)
+        return Response(response_data, status=200, mimetype='application/json')
+    except Exception as e:
+        print(e)
+        response_data = json.dumps({"msg": "Something is wrong or bad request"}, indent=4)
+        return Response(response_data, status=400, mimetype='application/json')
+
+
+@app.route("/get-youtube-comment-result/<ids>", methods=["GET"])
+@jwt_login_required
+def get_single_comment_and_result(ids, payload):
+    """Get single data from MongoDB database.
+
+    Args:
+        ids (ObjectID): Get single mongoDB object id to filter out a single data from MongoDB database.
+        payload (string): Get user_id from payload after authentication.
+
+    Returns:
+        return: return: Return single data (200) from mongodb by searching comment id and user_id else
+        return no data found (404) or something wrong happened exception or bad
+        request (400).
+    """
+    try:
+        data = []
+        comment = sentiment_analysis_db.find_one({"_id": ObjectId(ids), "user": uuid.UUID(payload['user_id'])})
+        if comment is None:
+            response_data = json.dumps({"msg": "data is not found."}, indent=4)
+            return Response(response_data, status=404, mimetype='application/json')
+        dict_item = OrderedDict([
+            ("id", str(comment["_id"])),
+            ("video_title", str(comment["video_title"])),
+            ("video_url", str(comment["video_url"])),
+            ("comment", str(comment["comment"])),
+            ("main_result", str(comment["main_result"])),
+            ("other_result", str(comment["other_result"])),
+            ("user", str(comment["user"])),
+        ])
+        data.append(dict_item)
         response_data = json.dumps({"data": data}, indent=4)
         return Response(response_data, status=200, mimetype='application/json')
     except Exception as e:
