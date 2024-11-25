@@ -11,7 +11,7 @@ from celery import shared_task
 from data_cleanup.clean_data import Filter
 from sentiment_analysis.sentiment import SentiMental
 from youtube_comments.get_youtube_comments import Comments
-from api import sentiment_analysis_db
+from api import sentiment_analysis_db, cache
 from url_id_extractor.id_extract import get_id
 from .producers import RabbitMQConnection
 
@@ -48,6 +48,7 @@ class Procressing:
                 data = sentiment_analysis_db.insert_one({"video_title": titles, "video_url": self.video_url,
                 "comment": "".join(listed_cleaned_data), "main_result": sentiment_analysis_main_data,
                 "other_result": sentiment_analysis_aditional_data, "user": uuid.UUID(self.payload['user_id'])})
+                cache.delete(f"sentiment_analysis_all_data_{self.payload['user_id']}") # deleting caches
                 data_inserted = sentiment_analysis_db.find_one({"_id": data.inserted_id})
                 if isinstance(data_inserted["user"], uuid.UUID):
                     data_inserted["user"] = str(data_inserted["user"])

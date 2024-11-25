@@ -8,7 +8,7 @@ import json
 from collections import OrderedDict
 from bson.objectid import ObjectId
 from flask import request, jsonify, Response
-from api import app, sentiment_analysis_db
+from api import app, sentiment_analysis_db, cache
 from api.tasks import task_celery_execute
 from jwt_token.jwt_token_verify import jwt_login_required
 
@@ -47,6 +47,13 @@ def get_all_comments_and_results(payload):
         request (400).
     """
     try:
+        # check if cached response avaliable or not
+        cached_item = cache.get(f"sentiment_analysis_all_data_{payload['user_id']}")
+        if cached_item:
+            deserialized_data = json.loads(cached_item)
+            response_data = json.dumps(deserialized_data, indent=4)
+            return Response(response_data, status=200, mimetype='application/json')
+
         data = []
         comments = sentiment_analysis_db.find({"user": uuid.UUID(payload['user_id'])})
         if sentiment_analysis_db.count_documents({}) == 0:
@@ -64,6 +71,7 @@ def get_all_comments_and_results(payload):
             ])  
             data.append(dict_items)
         response_data = json.dumps({"data": data}, indent=4)
+        cache.set(f"sentiment_analysis_all_data_{payload['user_id']}", response_data)
         return Response(response_data, status=200, mimetype='application/json')
     except Exception as e:
         print(e)
@@ -86,6 +94,12 @@ def get_single_comment_and_result(ids, payload):
         request (400).
     """
     try:
+        # check if cached response avaliable or not
+        cached_item = cache.get(f"sentiment_analysis_by_{ids}_{payload['user_id']}")
+        if cached_item:
+            deserialized_data = json.loads(cached_item)
+            response_data = json.dumps(deserialized_data, indent=4)
+            return Response(response_data, status=200, mimetype='application/json')
         data = []
         comment = sentiment_analysis_db.find_one({"_id": ObjectId(ids), "user": uuid.UUID(payload['user_id'])})
         if comment is None:
@@ -102,6 +116,7 @@ def get_single_comment_and_result(ids, payload):
         ])
         data.append(dict_item)
         response_data = json.dumps({"data": data}, indent=4)
+        cache.set(f"sentiment_analysis_by_{ids}_{payload['user_id']}", response_data)
         return Response(response_data, status=200, mimetype='application/json')
     except Exception as e:
         print(e)
@@ -129,6 +144,8 @@ def delete_single_comment(ids, payload):
             response_data = json.dumps({"msg": "data is not found."}, indent=4)
             return Response(response_data, status=404, mimetype='application/json')
         sentiment_analysis_db.delete_one({"_id": ObjectId(ids)})
+        # deleting cache data
+        cache.delete(f"sentiment_analysis_by_{ids}_{payload['user_id']}")
         return Response({}, status=204, mimetype='application/json')
     except Exception as e:
         print(e)
