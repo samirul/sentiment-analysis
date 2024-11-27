@@ -10,7 +10,10 @@ from bson.objectid import ObjectId
 from flask import request, jsonify, Response
 from api import app, sentiment_analysis_db, cache
 from api.tasks import task_celery_execute
+from api.producers import RabbitMQConnection
 from jwt_token.jwt_token_verify import jwt_login_required
+
+rabbit_mq = RabbitMQConnection()
 
 @app.route("/analysis-youtube-comments", methods=["POST"])
 @jwt_login_required
@@ -148,6 +151,7 @@ def delete_single_comment(ids, payload):
         sentiment_analysis_db.delete_one({"_id": ObjectId(ids)})
         # deleting cache data
         cache.delete(f"sentiment_analysis_by_{ids}_{payload['user_id']}")
+        rabbit_mq.publish("delete_data_from_youtools_django", ids)
         return Response({}, status=204, mimetype='application/json')
     except Exception as e:
         print(e)
