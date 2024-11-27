@@ -11,7 +11,7 @@ from celery import shared_task
 from data_cleanup.clean_data import Filter
 from sentiment_analysis.sentiment import SentiMental
 from youtube_comments.get_youtube_comments import Comments
-from api import sentiment_analysis_db, cache
+from api import sentiment_analysis_db, cache, category_db
 from url_id_extractor.id_extract import get_id
 from .producers import RabbitMQConnection
 
@@ -45,14 +45,24 @@ class Procressing:
                 sentiment_analysis = SentiMental(text=listed_cleaned_data, device=self.device, top_k=self.top_k)
                 sentiment_analysis_main_data = sentiment_analysis.result_data_convertion().split(',', maxsplit=1)[0] #
                 sentiment_analysis_aditional_data = ", ".join([item.strip() for item in sentiment_analysis.result_data_convertion().split(',')[1:]])
-                data = sentiment_analysis_db.insert_one({"video_title": titles, "video_url": self.video_url,
-                "comment": "".join(listed_cleaned_data), "main_result": sentiment_analysis_main_data,
-                "other_result": sentiment_analysis_aditional_data, "user": uuid.UUID(self.payload['user_id'])})
-                cache.delete(f"sentiment_analysis_all_data_{self.payload['user_id']}") # deleting caches
-                data_inserted = sentiment_analysis_db.find_one({"_id": data.inserted_id})
-                if isinstance(data_inserted["user"], uuid.UUID):
-                    data_inserted["user"] = str(data_inserted["user"])
-                self.publish.publish(method="task_data_saved", body=data_inserted)
+                categories = category_db.find_one({"category_name": titles})
+
+                if not categories:
+                    category_db.insert_one({"category_name": titles})
+
+                if categories:
+                    data = sentiment_analysis_db.insert_one({"video_title": titles, "video_url": self.video_url,
+                    "comment": "".join(listed_cleaned_data), "main_result": sentiment_analysis_main_data,
+                    "other_result": sentiment_analysis_aditional_data, "user": uuid.UUID(self.payload['user_id']),
+                    "category": categories['_id']})
+                    cache.delete(f"sentiment_analysis_all_data_{self.payload['user_id']}") # deleting caches
+                    data_inserted = sentiment_analysis_db.find_one({"_id": data.inserted_id})
+
+                    if isinstance(data_inserted["user"], uuid.UUID):
+                        data_inserted["user"] = str(data_inserted["user"])
+
+                    self.publish.publish(method="task_category_saved", body=categories)
+                    self.publish.publish(method="task_data_saved", body=data_inserted)
             return "Done"
         except Exception as e:
             print(f"Something Wrong: {e}")

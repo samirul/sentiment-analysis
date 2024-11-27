@@ -33,9 +33,9 @@ def analysis_comments_from_youtube(payload):
     
 
     
-@app.route("/all-youtube-comments-results", methods=['GET'])
+@app.route("/all-youtube-comments-results/<category_id>", methods=['GET'])
 @jwt_login_required
-def get_all_comments_and_results(payload):
+def get_all_comments_and_results(payload, category_id):
     """Get all the data from MongoDB database.
 
     Args:
@@ -48,18 +48,19 @@ def get_all_comments_and_results(payload):
     """
     try:
         # check if cached response avaliable or not
-        cached_item = cache.get(f"sentiment_analysis_all_data_{payload['user_id']}")
+        cached_item = cache.get(f"sentiment_analysis_all_data_{payload['user_id']}_{category_id}")
         if cached_item:
             deserialized_data = json.loads(cached_item)
             response_data = json.dumps(deserialized_data, indent=4)
             return Response(response_data, status=200, mimetype='application/json')
 
         data = []
-        comments = sentiment_analysis_db.find({"user": uuid.UUID(payload['user_id'])})
+        comments = sentiment_analysis_db.find({"user": uuid.UUID(payload['user_id']), "category": ObjectId(category_id)})
         if sentiment_analysis_db.count_documents({}) == 0:
             response_data = json.dumps({"msg": "data is not found."}, indent=4)
             return Response(response_data, status=404, mimetype='application/json')
         for comment in comments:
+            print(comments)
             dict_items = OrderedDict([
                 ("id", str(comment["_id"])),
                 ("video_title", str(comment["video_title"])),
@@ -68,10 +69,11 @@ def get_all_comments_and_results(payload):
                 ("main_result", str(comment["main_result"])),
                 ("other_result", str(comment["other_result"])),
                 ("user", str(comment["user"])),
+                ("category", str(comment["category"])),
             ])  
             data.append(dict_items)
         response_data = json.dumps({"data": data}, indent=4)
-        cache.set(f"sentiment_analysis_all_data_{payload['user_id']}", response_data)
+        cache.set(f"sentiment_analysis_all_data_{payload['user_id']}_{category_id}", response_data)
         return Response(response_data, status=200, mimetype='application/json')
     except Exception as e:
         print(e)
