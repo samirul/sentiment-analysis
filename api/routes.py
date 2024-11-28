@@ -148,10 +148,11 @@ def delete_single_comment(ids, payload):
         if comment is None:
             response_data = json.dumps({"msg": "data is not found."}, indent=4)
             return Response(response_data, status=404, mimetype='application/json')
-        sentiment_analysis_db.delete_one({"_id": ObjectId(ids)})
-        # deleting cache data
-        cache.delete(f"sentiment_analysis_by_{ids}_{payload['user_id']}")
-        rabbit_mq.publish("delete_data_from_youtools_django", ids)
+        if comment:
+            sentiment_analysis_db.delete_one({"_id": ObjectId(ids)})
+            # deleting cache data
+            cache.delete(f"sentiment_analysis_by_{ids}_{payload['user_id']}")
+            rabbit_mq.publish("delete_data_from_youtools_django", ids)
         return Response({}, status=204, mimetype='application/json')
     except Exception as e:
         print(e)
@@ -185,7 +186,7 @@ def delete_category(payload, category_id):
             sentiment_analysis_db.delete_many({"category": ObjectId(category_id)})
             cache.delete(f"sentiment_analysis_all_data_{payload['user_id']}_{category_id}")
             rabbit_mq.publish("delete_data_and_category_from_django_category", category_id)
-            return Response({}, status=204, mimetype='application/json')
+        return Response({}, status=204, mimetype='application/json')
     except Exception as e:
         print(e)
         response_data = json.dumps({"msg": "Something is wrong or bad request"}, indent=4)
