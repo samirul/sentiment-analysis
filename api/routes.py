@@ -45,7 +45,7 @@ def get_all_comments_and_results(payload, category_id):
         payload (UUID): Get user_id from payload after authentication. 
 
     Returns:
-        return: Return all the data (200) from mongodb by searching user_id else
+        return: Return all the data (200) from mongodb by searching user_id and category_id else
         return no data found (404) or something wrong happened exception or bad
         request (400).
     """
@@ -158,7 +158,49 @@ def delete_single_comment(ids, payload):
         print(e)
         response_data = json.dumps({"msg": "Something is wrong or bad request"}, indent=4)
         return Response(response_data, status=400, mimetype='application/json')
-    
+
+
+@app.route("/all-categories", methods=['GET'])
+@jwt_login_required
+def get_all_categories(payload):
+    """Get all the categories data from MongoDB database.
+
+    Args:
+        payload (UUID): Get user_id from payload after authentication. 
+
+    Returns:
+        return: Return all the categories data (200) from mongodb by searching user_id else
+        return no data found (404) or something wrong happened exception or bad
+        request (400).
+    """
+    try:
+        # check if cached response avaliable or not
+        cached_item = cache.get(f"categories_sentiment_analysis_all_data_{payload['user_id']}")
+        if cached_item:
+            deserialized_data = json.loads(cached_item)
+            response_data = json.dumps(deserialized_data, indent=4)
+            return Response(response_data, status=200, mimetype='application/json')
+        
+        data = []
+        categories = category_db.find({"user": payload['user_id']})
+        if category_db.count_documents({}) == 0:
+            response_data = json.dumps({"msg": "categories is not found."}, indent=4)
+            return Response(response_data, status=404, mimetype='application/json')
+        for category in categories:
+            dict_item = OrderedDict([
+                ("id", str(category["_id"])),
+                ("category_name", str(category["category_name"])),
+                ("user", str(category["user"])),
+            ])
+            data.append(dict_item)
+        response_data = json.dumps({"data": data}, indent=4)
+        cache.set(f"categories_sentiment_analysis_all_data_{payload['user_id']}", response_data)
+        return Response(response_data, status=200, mimetype='application/json')
+    except Exception as e:
+        print(e)
+        response_data = json.dumps({"msg": "Something is wrong or bad request"}, indent=4)
+        return Response(response_data, status=400, mimetype='application/json')
+
 
 @app.route("/delete-category/<category_id>", methods=['POST'])
 @jwt_login_required
