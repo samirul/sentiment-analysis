@@ -27,9 +27,12 @@ class RabbitMQConsumer:
                     print("message receiving....")
                     if properties.type == 'user_is_created':
                         print("Task executing, please wait....")
-                        data = json.loads(body)
-                        user.insert_one({'_id': uuid.UUID(data['id']), 'username': data['username'], 'email': data['email']})
-                        print("User inserted successfully")
+                        try:
+                            data = json.loads(body)
+                            user.insert_one({'_id': uuid.UUID(data['id']), 'username': data['username'], 'email': data['email']})
+                            print("User inserted successfully")
+                        except Exception as e:
+                            print(f"Something is wrong, data insertion failed on user: {e}")
 
                     if properties.type == 'delete_sentiment_analysis_data_from_flask':
                         print("Task executing, please wait....")
