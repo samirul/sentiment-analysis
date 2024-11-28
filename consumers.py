@@ -6,7 +6,8 @@ import json
 import os
 import pika
 from pika.exceptions import AMQPConnectionError
-from api import user
+from bson import ObjectId
+from api import user, sentiment_analysis_db
 
 class RabbitMQConsumer:
     """Required parameters/arguments"""
@@ -29,6 +30,18 @@ class RabbitMQConsumer:
                         data = json.loads(body)
                         user.insert_one({'_id': uuid.UUID(data['id']), 'username': data['username'], 'email': data['email']})
                         print("User inserted successfully")
+
+                    if properties.type == 'delete_sentiment_analysis_data_from_flask':
+                        print("Task executing, please wait....")
+                        try:
+                            data = json.loads(body)
+                            sentiment_analysis_db.delete_one({"_id": ObjectId(data)})
+                            print("Data from sentiment analysis deleted successfully.")
+                        except Exception as e:
+                            print(f"Sothing is wrong, data from sentiment analysis failed to delete: {e}")
+
+
+                        
                     
                 except Exception as e:
                         # Log or handle errors during message processing
