@@ -7,7 +7,7 @@ import os
 import pika
 from pika.exceptions import AMQPConnectionError
 from bson import ObjectId
-from api import user, sentiment_analysis_db
+from api import user, sentiment_analysis_db, category_db
 
 class RabbitMQConsumer:
     """Required parameters/arguments"""
@@ -42,10 +42,17 @@ class RabbitMQConsumer:
                             print("Data from sentiment analysis deleted successfully.")
                         except Exception as e:
                             print(f"Sothing is wrong, data from sentiment analysis failed to delete: {e}")
+       
+                    if properties.type == 'delete_sentiment_analysis_category_data_from_flask':
+                        print("Task executing, please wait....")
+                        try:
+                            data = json.loads(body)
+                            category_db.delete_one({"_id": ObjectId(data)})
+                            sentiment_analysis_db.delete_many({"category": ObjectId(data)})
+                            print("Data from category and sentiment analysis deleted successfully.")
+                        except Exception as e:
+                            print(f"Sothing is wrong, data from sentiment analysis failed to delete: {e}")
 
-
-                        
-                    
                 except Exception as e:
                         # Log or handle errors during message processing
                         print(f"Error processing message: {e}")
