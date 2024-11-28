@@ -8,7 +8,7 @@ import json
 from collections import OrderedDict
 from bson.objectid import ObjectId
 from flask import request, jsonify, Response
-from api import app, sentiment_analysis_db, cache
+from api import app, sentiment_analysis_db, cache, category_db
 from api.tasks import task_celery_execute
 from api.producers import RabbitMQConnection
 from jwt_token.jwt_token_verify import jwt_login_required
@@ -153,6 +153,39 @@ def delete_single_comment(ids, payload):
         cache.delete(f"sentiment_analysis_by_{ids}_{payload['user_id']}")
         rabbit_mq.publish("delete_data_from_youtools_django", ids)
         return Response({}, status=204, mimetype='application/json')
+    except Exception as e:
+        print(e)
+        response_data = json.dumps({"msg": "Something is wrong or bad request"}, indent=4)
+        return Response(response_data, status=400, mimetype='application/json')
+    
+
+@app.route("/delete-category/<category_id>", methods=['POST'])
+@jwt_login_required
+def delete_category(payload, category_id):
+    """Delete specific category data from MongoDB.
+
+    Args:
+        payload (UUID): Get user_id from payload after authentication.
+        category_id (ObjectID): Get single mongoDB category object id 
+        to filter out a single category data from MongoDB database.
+
+    Returns:
+        return: Finding the single category data from mongodb by searching category id and user_id then
+        checking if data found in category and if found then deleting specific category data (204) and
+        deleting all that data releted to category (204) else return no data found (404) or something wrong happened exception or bad
+        request (400).
+    """
+    try:
+        category_data_find = category_db.find_one({"_id": ObjectId(category_id), "user": payload['user_id']})
+        if not category_data_find:
+            response_data = json.dumps({"msg": "category is not found."}, indent=4)
+            return Response(response_data, status=404, mimetype='application/json')
+        if category_data_find:
+            category_db.delete_one({"_id": ObjectId(category_id)})
+            sentiment_analysis_db.delete_many({"category": ObjectId(category_id)})
+            cache.delete(f"sentiment_analysis_all_data_{payload['user_id']}_{category_id}")
+            rabbit_mq.publish("delete_data_and_category_from_django_category", category_id)
+            return Response({}, status=204, mimetype='application/json')
     except Exception as e:
         print(e)
         response_data = json.dumps({"msg": "Something is wrong or bad request"}, indent=4)

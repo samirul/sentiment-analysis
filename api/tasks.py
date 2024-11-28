@@ -45,18 +45,18 @@ class Procressing:
                 sentiment_analysis = SentiMental(text=listed_cleaned_data, device=self.device, top_k=self.top_k)
                 sentiment_analysis_main_data = sentiment_analysis.result_data_convertion().split(',', maxsplit=1)[0] #
                 sentiment_analysis_aditional_data = ", ".join([item.strip() for item in sentiment_analysis.result_data_convertion().split(',')[1:]])
-                categories = category_db.find_one({"category_name": titles})
+                categories = category_db.find_one({"category_name": titles, "user": uuid.UUID(self.payload["user_id"])})
 
                 if not categories:
-                    category_db.insert_one({"category_name": titles})
+                    category_db.insert_one({"category_name": titles, "user": uuid.UUID(self.payload["user_id"])})
 
                 if categories:
                     data = sentiment_analysis_db.insert_one({"video_title": titles, "video_url": self.video_url,
                     "comment": "".join(listed_cleaned_data), "main_result": sentiment_analysis_main_data,
                     "other_result": sentiment_analysis_aditional_data, "user": uuid.UUID(self.payload['user_id']),
                     "category": categories['_id']})
-                    cache.delete(f"sentiment_analysis_all_data_{self.payload['user_id']}") # deleting caches
-                    data_inserted = sentiment_analysis_db.find_one({"_id": data.inserted_id})
+                    cache.delete(f"sentiment_analysis_all_data_{self.payload['user_id']}_{categories['_id']}") # deleting caches
+                    data_inserted = sentiment_analysis_db.find_one({"_id": data.inserted_id, "user": uuid.UUID(self.payload['user_id'])})
 
                     if isinstance(data_inserted["user"], uuid.UUID):
                         data_inserted["user"] = str(data_inserted["user"])
