@@ -12,11 +12,11 @@ class Comments:
     Returns:
         return: Queue and Title.
     """
-    def __init__(self, video_id, max_len=10):
+    def __init__(self, video_id, max_len):
         self.api_key = os.environ.get('YOUTUBE_API_KEY') # Getting api key from env variable
         self.youtube = build('youtube', 'v3', developerKey=self.api_key)
         self.video_id = video_id # getting youtube id
-        self.max_len = max_len # maximum comments is allowed to fetch
+        self.max_len = max_len + 1 # maximum comments is allowed to fetch
 
     def fetch_comments(self):
         """fetching youtube comments.

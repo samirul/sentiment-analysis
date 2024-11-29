@@ -18,7 +18,7 @@ from .producers import RabbitMQConnection
 
 class Procressing:
     """Intializing some required parameters"""
-    def __init__(self, video_url, payload, max_len=20, device='cuda', top_k=None):
+    def __init__(self, video_url, payload, max_len, device='cuda', top_k=None):
         self.video_id = get_id(video_url)
         self.video_url = video_url
         self.comments = Comments(video_id=self.video_id, max_len=max_len)
@@ -61,6 +61,9 @@ class Procressing:
                     if isinstance(data_inserted["user"], uuid.UUID):
                         data_inserted["user"] = str(data_inserted["user"])
 
+                    if isinstance(categories["user"], uuid.UUID):
+                        categories["user"] = str(categories["user"])
+
                     self.publish.publish(method="task_category_saved", body=categories)
                     self.publish.publish(method="task_data_saved", body=data_inserted)
             return "Done"
@@ -70,7 +73,7 @@ class Procressing:
 
 
 @shared_task(ignore_result=False)
-def task_celery_execute(video_url, payload, max_len=20):
+def task_celery_execute(video_url, payload, max_len):
     """Function for warping up celery "shared_task" for excecuting
         celery task
 
