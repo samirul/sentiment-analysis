@@ -21,7 +21,8 @@ class Procressing:
     def __init__(self, video_url, payload, max_len, device='cuda', top_k=None):
         self.video_id = get_id(video_url)
         self.video_url = video_url
-        self.comments = Comments(video_id=self.video_id, max_len=max_len)
+        self.max_len = max_len
+        self.comments = None
         self.device = device
         self.top_k = top_k
         self.publish = RabbitMQConnection()
@@ -36,6 +37,13 @@ class Procressing:
             an exception
         """
         try:
+            if not self.video_url:
+                raise ValueError("Video url isn't found, please add a url.")
+            if not self.max_len:
+                raise ValueError("No max length is found.")
+            if not self.payload:
+                raise ValueError("User is not logged in, not user information has been found.")
+            self.comments = Comments(video_id=self.video_id, max_len=self.max_len)
             comments = self.comments.fetch_comments()
             titles = self.comments.fetch_title()
             while comments:
@@ -68,7 +76,7 @@ class Procressing:
                     self.publish.publish(method="task_data_saved", body=data_inserted)
             return "Done"
         except Exception as e:
-            print(f"Something Wrong: {e}")
+            print(f"Something is Wrong: {e}")
             return e
 
 
@@ -81,5 +89,10 @@ def task_celery_execute(video_url, payload, max_len):
         video_url (Link): Youtube video url
         max_len (int, optional): max fetching youtube comments. Defaults to 20.
     """
-    process = Procressing(video_url=video_url, payload=payload, max_len=max_len)
-    process.task()
+    try:
+        process = Procressing(video_url=video_url, payload=payload, max_len=max_len)
+        process.task()
+        return "Done"
+    except Exception as e:
+        print(f"Something is Wrong ->: {e}")
+        return e

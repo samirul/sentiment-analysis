@@ -27,6 +27,9 @@ def analysis_comments_from_youtube(payload):
     """
     try:
         inputed_text = request.json.get("url")
+        if not inputed_text:
+            response_data = json.dumps({"msg": "No url is found, add a url."}, indent=4)
+            return Response(response_data, status=404, mimetype='application/json')
         result = task_celery_execute.delay(video_url=inputed_text, payload=payload, max_len=5)
         return jsonify({"msg": "Success", "result_id": result.id, "result_status": result.status}),200
     except Exception as e:
