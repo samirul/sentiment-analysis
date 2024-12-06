@@ -1,7 +1,9 @@
 import uuid
-import pytest
-from api import app, user, cache
 import json
+import pytest
+from api import app, user, cache, category_db
+from .random_object_id_generate.generate_id import random_object_id
+
 
 
 @pytest.fixture
@@ -34,4 +36,37 @@ def set_user_info(get_user_info):
     user_detail = user.find_one({"_id": inserted.inserted_id})
     return user_detail
 
+
+@pytest.fixture
+def create_category(set_user_info):
+    id_ = random_object_id()
+    user_ = set_user_info
+    custom_data ={
+        "_id": id_,
+        "category_name": "category-xyz",
+        "user": user_["_id"]
+    }
+    check_data_already_in = category_db.find_one({"category_name": custom_data.get("category_name"),
+                                                  "user": custom_data.get("user")
+                                                  })
+    if not check_data_already_in:
+        category_id = category_db.insert_one(custom_data)
+        return category_id.inserted_id
+
+
+@pytest.fixture
+def create_category2(set_user_info):
+    id_ = random_object_id()
+    user_ = set_user_info
+    custom_data ={
+        "_id": id_,
+        "category_name": "category-abc",
+        "user": user_["_id"]
+    }
+    check_data_already_in = category_db.find_one({"category_name": custom_data.get("category_name"),
+                                                  "user": custom_data.get("user")
+                                                  })
+    if not check_data_already_in:
+        category_id = category_db.insert_one(custom_data)
+        return category_id.inserted_id
 

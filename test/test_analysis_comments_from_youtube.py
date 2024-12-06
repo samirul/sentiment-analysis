@@ -1,12 +1,9 @@
-from api import user
+from api import user, category_db
 from api.tasks import task_celery_execute, Procressing
-import json
-import uuid
-import pytest
-
 
 def test_analysis_comments_from_youtube(client, get_access_token, set_user_info):
     access_token = get_access_token
+    user_info = set_user_info
     # Define headers
     headers = {
         "Authorization": f"Bearer {access_token}",
@@ -14,9 +11,10 @@ def test_analysis_comments_from_youtube(client, get_access_token, set_user_info)
     }
 
     url = "https://www.youtube.com/watch?v=r0m-iSnbKvc"
+    max_len = 5
     
     # Send POST request
-    response = client.post("/analysis-youtube-comments", headers=headers, json={"url": url})
+    response = client.post("/analysis-youtube-comments", headers=headers, json={"url": url, "max_len": max_len})
  
     # Assert response
     assert response.status_code == 200
@@ -26,6 +24,7 @@ def test_analysis_comments_from_youtube(client, get_access_token, set_user_info)
     assert response.json['msg'] == 'Success'
     assert response.json['result_status'] == 'PENDING'
     user.delete_one({"username": "cat1", "email": "cat1@cat.com"})
+    category_db.delete_many({"user": user_info["_id"]})
 
 
 def test_analysis_comments_from_youtube_failed_for_no_url(client, get_access_token, set_user_info):
@@ -37,9 +36,10 @@ def test_analysis_comments_from_youtube_failed_for_no_url(client, get_access_tok
     }
 
     url = ""
+    max_len = 5
     
     # Send POST request
-    response = client.post("/analysis-youtube-comments", headers=headers, json={"url": url})
+    response = client.post("/analysis-youtube-comments", headers=headers, json={"url": url, "max_len": max_len})
  
     # Assert response
     assert response.status_code == 404
@@ -52,8 +52,9 @@ def test_analysis_comments_from_youtube_failed_for_no_url(client, get_access_tok
 
 def test_analysis_comments_from_youtube_failed_for_no_access_token(client, get_access_token, set_user_info):
     url = ""
+    max_len = 5
     # Send POST request
-    response = client.post("/analysis-youtube-comments", json={"url": url})
+    response = client.post("/analysis-youtube-comments", json={"url": url, "max_len": max_len})
     # Assert response
     assert response.status_code == 401
     assert 'error' in response.json
@@ -70,6 +71,7 @@ def test_celery_task_running(set_user_info):
     # payload = json.dumps(payload)
     assert task_celery_execute.delay(video_url=video_url, payload=payload, max_len=5).get() == "Done"
     user.delete_one({"username": "cat1", "email": "cat1@cat.com"})
+    category_db.delete_many({"user": user_id["_id"]})
 
 
 def test_task_class_if_passed(set_user_info):
@@ -79,6 +81,7 @@ def test_task_class_if_passed(set_user_info):
     process = Procressing(video_url=video_url, payload=payload, max_len=5)
     assert process.task() == "Done"
     user.delete_one({"username": "cat1", "email": "cat1@cat.com"})
+    category_db.delete_many({"user": user_id["_id"]})
 
 
 def test_task_class_if_failed_wrong_type_id(set_user_info):

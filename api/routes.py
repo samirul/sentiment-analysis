@@ -27,10 +27,14 @@ def analysis_comments_from_youtube(payload):
     """
     try:
         inputed_text = request.json.get("url")
+        max_len = request.json.get("max_len")
         if not inputed_text:
             response_data = json.dumps({"msg": "No url is found, add a url."}, indent=4)
             return Response(response_data, status=404, mimetype='application/json')
-        result = task_celery_execute.delay(video_url=inputed_text, payload=payload, max_len=5)
+        if not max_len:
+            response_data = json.dumps({"msg": "No max length found, input max length."}, indent=4)
+            return Response(response_data, status=404, mimetype='application/json')
+        result = task_celery_execute.delay(video_url=inputed_text, payload=payload, max_len=max_len)
         return jsonify({"msg": "Success", "result_id": result.id, "result_status": result.status}),200
     except Exception as e:
         print(e)
@@ -66,7 +70,6 @@ def get_all_comments_and_results(payload, category_id):
             response_data = json.dumps({"msg": "data is not found."}, indent=4)
             return Response(response_data, status=404, mimetype='application/json')
         for comment in comments:
-            print(comments)
             dict_items = OrderedDict([
                 ("id", str(comment["_id"])),
                 ("video_title", str(comment["video_title"])),
@@ -185,7 +188,7 @@ def get_all_categories(payload):
             return Response(response_data, status=200, mimetype='application/json')
         
         data = []
-        categories = category_db.find({"user": payload['user_id']})
+        categories = category_db.find({"user": uuid.UUID(payload['user_id'])})
         if category_db.count_documents({}) == 0:
             response_data = json.dumps({"msg": "categories is not found."}, indent=4)
             return Response(response_data, status=404, mimetype='application/json')
