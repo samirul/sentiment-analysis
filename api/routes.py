@@ -124,6 +124,7 @@ def get_single_comment_and_result(ids, payload):
             ("main_result", str(comment["main_result"])),
             ("other_result", str(comment["other_result"])),
             ("user", str(comment["user"])),
+            ("category", str(comment["category"])),
         ])
         data.append(dict_item)
         response_data = json.dumps({"data": data}, indent=4)
@@ -135,7 +136,7 @@ def get_single_comment_and_result(ids, payload):
         return Response(response_data, status=400, mimetype='application/json')
 
 
-@app.route("/delete-comment/<ids>", methods=['POST'])
+@app.route("/delete-comment/<ids>", methods=['DELETE'])
 @jwt_login_required
 def delete_single_comment(ids, payload):
     """Delete single data from MongoDB database.
@@ -208,7 +209,7 @@ def get_all_categories(payload):
         return Response(response_data, status=400, mimetype='application/json')
 
 
-@app.route("/delete-category/<category_id>", methods=['POST'])
+@app.route("/delete-category/<category_id>", methods=['DELETE'])
 @jwt_login_required
 def delete_category(payload, category_id):
     """Delete specific category data from MongoDB.
@@ -225,7 +226,7 @@ def delete_category(payload, category_id):
         request (400).
     """
     try:
-        category_data_find = category_db.find_one({"_id": ObjectId(category_id), "user": payload['user_id']})
+        category_data_find = category_db.find_one({"_id": ObjectId(category_id), "user": uuid.UUID(payload['user_id'])})
         if not category_data_find:
             response_data = json.dumps({"msg": "category is not found."}, indent=4)
             return Response(response_data, status=404, mimetype='application/json')
