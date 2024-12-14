@@ -1,5 +1,4 @@
 import json
-from bson.objectid import ObjectId
 from api import user, category_db, sentiment_analysis_db
 
 def test_single_comment_and_result(client, get_access_token, set_user_info, create_category, create_comments1, create_comments2):
