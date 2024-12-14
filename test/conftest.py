@@ -2,7 +2,7 @@ import uuid
 import json
 import pytest
 from bson.objectid import ObjectId
-from api import app, user, cache, category_db, sentiment_analysis_db
+from api import app, user, cache, category_db, sentiment_analysis_db, celery_app
 from .random_object_id_generate.generate_id import random_object_id
 
 
@@ -10,6 +10,12 @@ from .random_object_id_generate.generate_id import random_object_id
 @pytest.fixture
 def client():
     return app.test_client()
+
+@pytest.fixture
+def celery_app_test():
+    celery_app.conf.task_always_eager = True
+    celery_app.conf.task_eager_propagates = True
+    yield celery_app
 
 @pytest.fixture
 def get_access_token():

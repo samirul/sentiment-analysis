@@ -1,7 +1,7 @@
 from api import user, category_db, sentiment_analysis_db
 from api.tasks import task_celery_execute, Procressing
 
-def test_analysis_comments_from_youtube(client, get_access_token, set_user_info):
+def test_analysis_comments_from_youtube(client, celery_app_test, get_access_token, set_user_info):
     access_token = get_access_token
     user_info = set_user_info
     # Define headers
@@ -22,13 +22,13 @@ def test_analysis_comments_from_youtube(client, get_access_token, set_user_info)
     assert 'result_id' in response.json
     assert 'result_status' in response.json
     assert response.json['msg'] == 'Success'
-    assert response.json['result_status'] == 'PENDING'
+    assert response.json['result_status'] == 'SUCCESS'
     sentiment_analysis_db.delete_many({"user": user_info["_id"]})
     category_db.delete_many({"user": user_info["_id"]})
     user.delete_one({"username": "cat1", "email": "cat1@cat.com"})
 
 
-def test_analysis_comments_from_youtube_failed_for_wrong_access_token(client, get_access_token, set_user_info):
+def test_analysis_comments_from_youtube_failed_for_wrong_access_token(client, celery_app_test, get_access_token, set_user_info):
     access_token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyQzdwIDPiPvv70yMzQ1Njc4OTDvv70sIm5hbWUiOiLKb3FPIEUvZSIsIu-_vWFOIjoxNT7vv70yMzkwM--_vX0.mUgFb0hxU8oqRjlC7Nxvp6dak5rULWHu9gnYvWHemoY'
     user_info = set_user_info
     # Define headers
@@ -55,7 +55,7 @@ def test_analysis_comments_from_youtube_failed_for_wrong_access_token(client, ge
     user.delete_one({"username": "cat1", "email": "cat1@cat.com"})
 
 
-def test_analysis_comments_from_youtube_failed_for_no_url(client, get_access_token, set_user_info):
+def test_analysis_comments_from_youtube_failed_for_no_url(client, celery_app_test, get_access_token, set_user_info):
     access_token = get_access_token
     # Define headers
     headers = {
@@ -78,7 +78,7 @@ def test_analysis_comments_from_youtube_failed_for_no_url(client, get_access_tok
     user.delete_one({"username": "cat1", "email": "cat1@cat.com"})
 
 
-def test_analysis_comments_from_youtube_failed_for_no_access_token(client, get_access_token, set_user_info):
+def test_analysis_comments_from_youtube_failed_for_no_access_token(client, celery_app_test, get_access_token, set_user_info):
     url = ""
     max_len = 5
     # Send POST request
