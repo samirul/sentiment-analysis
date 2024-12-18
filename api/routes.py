@@ -240,3 +240,7 @@ def delete_category(payload, category_id):
         print(e)
         response_data = json.dumps({"msg": "Something is wrong or bad request"}, indent=4)
         return Response(response_data, status=400, mimetype='application/json')
+    
+@app.route("/health", methods=['GET'])
+def health():
+    return jsonify("Running")

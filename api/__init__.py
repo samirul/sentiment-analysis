@@ -5,6 +5,7 @@
 """
 
 import os
+from urllib.parse import quote_plus
 from flask import Flask
 from flask_caching import Cache
 from dotenv import load_dotenv
@@ -17,9 +18,10 @@ load_dotenv()
 # Created new flask app
 app = Flask(__name__)
 
-# Adding env for fash_caching
+# Adding env for flash_caching
 app.config['CACHE_TYPE'] = os.environ.get('CACHE_TYPE')
 app.config['CACHE_REDIS_HOST'] = os.environ.get('CACHE_REDIS_HOST')
+app.config['CACHE_REDIS_PASSWORD'] = os.environ.get('CACHE_REDIS_PASSWORD')
 app.config['CACHE_REDIS_PORT'] = os.environ.get('CACHE_REDIS_PORT')
 app.config['CACHE_REDIS_DB'] = os.environ.get('CACHE_REDIS_DB')
 app.config["CACHE_DEFAULT_TIMEOUT"] = os.environ.get('CACHE_DEFAULT_TIMEOUT')
@@ -31,8 +33,8 @@ cache.init_app(app)
 # Added info to celery
 app.config.from_mapping(
     CELERY={
-        "broker_url": "redis://localhost",
-        "result_backend": "redis://localhost",
+        "broker_url": os.environ.get('CELERY_BROKER'),
+        "result_backend": os.environ.get('CELERY_BACKEND'),
         "task_ignore_result": True,
     }
 )
@@ -42,8 +44,14 @@ celery_app = celery_init_app(app)
 # Added flask secret key in env
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY')
 
-# Added mongoclient 
-client = MongoClient('localhost', 27017, uuidRepresentation="standard")
+# Added mongoclient
+username = quote_plus(os.environ.get("MONGO_DB_USER_NAME"))
+password = quote_plus(os.environ.get("MONGO_DB_PASSWORD"))
+host = os.environ.get("MONGO_DB_HOST_NAME")
+auth_source = os.environ.get("MONGO_DB_AUTH_SOURCE")
+port = int(os.environ.get("MONGO_DB_PORT"))
+url = f"mongodb://{username}:{password}@{host}:{port}/?authSource={auth_source}"
+client = MongoClient(url, connect=False, uuidRepresentation="standard")
 
 # Creating mongo database
 
