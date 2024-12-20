@@ -18,7 +18,10 @@ rabbit_mq = RabbitMQConnection()
 @app.route("/analysis-youtube-comments", methods=["POST"])
 @jwt_login_required
 def analysis_comments_from_youtube(payload):
-    """Responsible for executing celery task sentiment analysis. 
+    """Responsible for executing celery task sentiment analysis.
+
+    Args:
+        payload (UUID): Get user_id from payload after authentication.
 
     Returns:
         Response: This function execute celery taks and provide
