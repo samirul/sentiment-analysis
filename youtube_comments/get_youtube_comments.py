@@ -24,7 +24,7 @@ class Comments:
         Raises:
             ValueError: raise if video id is not found.
             ValueError: raise if max length is not found.
-            ValueError: raise if max length is less than 1.
+            ValueError: raise if max length value is less than 1.
             TypeError: raise if max length is not integer type.
             TypeError: raise if video id is not string type.
 
