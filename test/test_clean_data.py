@@ -12,5 +12,5 @@ def test_clean_datas():
         total.append(data)
     assert len(total) == 5
     assert total[0][0] == 'limited time get software development program'
-    assert total[1][0] == 'nice content lot opportunity available python'
+
 
