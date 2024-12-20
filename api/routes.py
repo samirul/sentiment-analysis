@@ -25,7 +25,8 @@ def analysis_comments_from_youtube(payload):
     Returns:
         Response: This function execute celery taks and provide
         task ID and response type - [POST] and status code - 200 OK
-        with json format else return status code - 400 bad request.
+        with json format else return status code - 400 bad request,
+        return 401 if not authenticated, 404 if data is not found..
     """
     try:
         inputed_text = request.json.get("url")
@@ -56,7 +57,7 @@ def get_all_comments_and_results(payload, category_id):
     Returns:
         return: Return all the data (200) from mongodb by searching user_id and category_id else
         return no data found (404) or something wrong happened exception or bad
-        request (400).
+        request (400), return 401 if not authenticated, 404 if data is not found.
     """
     try:
         # check if cached response avaliable or not
@@ -104,7 +105,7 @@ def get_single_comment_and_result(ids, payload):
     Returns:
         return: Return single data (200) from mongodb by searching comment id and user_id else
         return no data found (404) or something wrong happened exception or bad
-        request (400).
+        request (400), return 401 if not authenticated, 404 if data is not found.
     """
     try:
         # check if cached response avaliable or not
@@ -150,7 +151,7 @@ def delete_single_comment(ids, payload):
     Returns:
         return: Finding the single data from mongodb by searching comment id and user_id then
         deleting that data (204) else return no data found (404) or something wrong happened exception or bad
-        request (400).
+        request (400), return 401 if not authenticated, 404 if data is not found.
     """
     try:
         comment = sentiment_analysis_db.find_one({"_id": ObjectId(ids), "user": uuid.UUID(payload['user_id'])})
@@ -180,7 +181,7 @@ def get_all_categories(payload):
     Returns:
         return: Return all the categories data (200) from mongodb by searching user_id else
         return no data found (404) or something wrong happened exception or bad
-        request (400).
+        request (400), return 401 if not authenticated, 404 if data is not found.
     """
     try:
         # check if cached response avaliable or not
@@ -225,7 +226,7 @@ def delete_category(payload, category_id):
         return: Finding the single category data from mongodb by searching category id and user_id then
         checking if data found in category and if found then deleting specific category data (204) and
         deleting all that data releted to category (204) else return no data found (404) or something wrong happened exception or bad
-        request (400).
+        request (400), return 401 if not authenticated, 404 if data is not found.
     """
     try:
         category_data_find = category_db.find_one({"_id": ObjectId(category_id), "user": uuid.UUID(payload['user_id'])})
