@@ -23,6 +23,10 @@ class Filter:
     def clean(self):
         """Responsible for cleaning all the text.
 
+        Raises:
+            ValueError: raises if no text is found for cleaning data.
+            TypeError: raises if provided text is not string type.
+
         Yields:
             generator: "function generates filtered/cleaned data one by one or at a time."
         """
@@ -31,6 +35,7 @@ class Filter:
                 raise ValueError("No text is found for cleaning data.")
             if not isinstance(self.text, str):
                 raise TypeError(f"Text should be in string and not {type(self.text)}.")
+            
             text = self.text.lower() # converting every text into smaller case
             removing_urls = re.sub(r"http\S+|www\S+|https\S+", '', text, flags=re.MULTILINE) # removing urls from the text
             removing_href = re.sub(r"href+",'', removing_urls) # removing href from the text

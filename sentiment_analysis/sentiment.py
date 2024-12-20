@@ -6,7 +6,7 @@
 from transformers import pipeline
 
 class SentiMental:
-    """Imported Required parameters"""
+    """Imported Required parameters."""
     def __init__(self, text, device='cuda', top_k=None):
         self.model = "lxyuan/distilbert-base-multilingual-cased-sentiments-student"
         self.device = device
@@ -15,7 +15,10 @@ class SentiMental:
 
     def result_data(self):
         """Added required parameters to transformer pipelines
-        Models, Device, Top_K
+        Models, Device, Top_K.
+
+        Raises:
+            ValueError: raises if no text is provided for sentiment-analysis.
 
         Yields:
             generate: Feed data to pipeline and then get the results using generator.
@@ -32,11 +35,14 @@ class SentiMental:
             yield str(e)
 
     def result_data_convertion(self):
-        """Get result from pipeline
+        """Get result from pipeline.
+
+        Raises:
+            ValueError: raises if no text is provided for sentiment-analysis.
 
         Returns:
             return: Get result from sentiment anaysis
-            pipeline and convert it to percentages
+            pipeline and convert it to percentages.
         """
         try:
             if not self.text:

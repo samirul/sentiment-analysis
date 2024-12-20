@@ -31,9 +31,14 @@ class Procressing:
     def task(self):
         """Function for responsible executing celery task within class member
 
+        Raises:
+            ValueError: raises video url error if required youtube video url id is not provided before executing the task.
+            ValueError: raises max len error if required length/total comments is not provided before executing the task.
+            ValueError: raises payload error if user is not logged in before executing the task.
+
         Returns:
             returns: It execute and run task of sentiment analysis
-            and save on MongoDB and then returns Done, else will throw 
+            and save data on MongoDB and then returns Done, else will throw 
             an exception
         """
         try:
@@ -87,9 +92,15 @@ def task_celery_execute(video_url, payload, max_len):
         celery task
 
     Args:
-        video_url (Link): Youtube video url
-        max_len (int, optional): max fetching youtube comments. Defaults to 20.
+        video_url (Link): Youtube video url id.
+        payload (auth, sting, uuid): Getting user id from the access token after login from django.
+        application youtools.
+        max_len (int): max times fetching youtube comments. Defaults to 20.
+
+    Returns:
+        Returns: Return done if task run successfully, else will thow error if task failed to execute.
     """
+
     try:
         process = Procressing(video_url=video_url, payload=payload, max_len=max_len)
         process.task()

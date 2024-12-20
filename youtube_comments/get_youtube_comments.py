@@ -21,6 +21,13 @@ class Comments:
     def fetch_comments(self):
         """fetching youtube comments.
 
+        Raises:
+            ValueError: raise if video id is not found.
+            ValueError: raise if max length is not found.
+            ValueError: raise if max length is less than 1.
+            TypeError: raise if max length is not integer type.
+            TypeError: raise if video id is not string type.
+
         Returns:
             return: "Queue for storing comments temporary(FIFO)."
         """
@@ -48,6 +55,10 @@ class Comments:
     
     def fetch_title(self):
         """fetching youtube title.
+
+        Raises:
+            ValueError: raise if video id is not found.
+            TypeError: raise if video id is not string type.
 
         Returns:
             return: get video title from youtube api.

@@ -1,18 +1,21 @@
 """
-    get video id from youtube video url
+    get video id from youtube video url.
 """
 
 from urllib.parse import urlparse, parse_qs
 
 def get_id(url):
-    """function for extract id from the url
+    """function for extract id from the url.
 
     Args:
-        url (Link): Getting the url link as parameter
+        url (Link): Getting the url link as parameter.
+
+    Raises:
+        ValueError: raises if youtube video url is not found for id extract.
 
     Returns:
         return: returning the url id after extracting from
-        url the link using urllib else returning None 
+        provided url/the link using urllib else returning None.
     """
     try:
         if not url:
