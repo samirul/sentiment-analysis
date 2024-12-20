@@ -1,7 +1,6 @@
 """ 
     Here route act as endpoint for link
     and for writing certain logics.
-
 """
 import uuid
 import json
