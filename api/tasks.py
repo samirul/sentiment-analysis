@@ -31,9 +31,14 @@ class Procressing:
     def task(self):
         """Function for responsible executing celery task within class member
 
+        Raises:
+            ValueError: raises video url error if required youtube video url id is not provided before executing the task.
+            ValueError: raises max len error if required length/total comments is not provided before executing the task.
+            ValueError: raises payload error if user is not logged in before executing the task.
+
         Returns:
             returns: It execute and run task of sentiment analysis
-            and save on MongoDB and then returns Done, else will throw 
+            and save data on MongoDB and then returns Done, else will throw 
             an exception
         """
         try:
@@ -43,22 +48,23 @@ class Procressing:
                 raise ValueError("No max length is found.")
             if not self.payload:
                 raise ValueError("User is not logged in, not user information has been found.")
+            
             self.comments = Comments(video_id=self.video_id, max_len=self.max_len)
             comments = self.comments.fetch_comments()
             titles = self.comments.fetch_title()
-            while comments:
-                data = comments.popleft() # getting unfiltered datas from queue
-                cleaned_data = Filter(text=data) # filtering unfiltered data
-                listed_cleaned_data = list(cleaned_data.clean()) # cleaned data
-                sentiment_analysis = SentiMental(text=listed_cleaned_data, device=self.device, top_k=self.top_k)
-                sentiment_analysis_main_data = sentiment_analysis.result_data_convertion().split(',', maxsplit=1)[0] #
-                sentiment_analysis_aditional_data = ", ".join([item.strip() for item in sentiment_analysis.result_data_convertion().split(',')[1:]])
-                categories = category_db.find_one({"category_name": titles, "user": uuid.UUID(self.payload["user_id"])})
 
+            while comments:
+                categories = category_db.find_one({"category_name": titles, "user": uuid.UUID(self.payload["user_id"])})
                 if not categories:
                     category_db.insert_one({"category_name": titles, "user": uuid.UUID(self.payload["user_id"])})
 
                 if categories:
+                    data = comments.popleft() # getting unfiltered datas from queue
+                    cleaned_data = Filter(text=data) # filtering unfiltered data
+                    listed_cleaned_data = list(cleaned_data.clean()) # cleaned data
+                    sentiment_analysis = SentiMental(text=listed_cleaned_data, device=self.device, top_k=self.top_k)
+                    sentiment_analysis_main_data = sentiment_analysis.result_data_convertion().split(',', maxsplit=1)[0] #
+                    sentiment_analysis_aditional_data = ", ".join([item.strip() for item in sentiment_analysis.result_data_convertion().split(',')[1:]])
                     data = sentiment_analysis_db.insert_one({"video_title": titles, "video_url": self.video_url,
                     "comment": "".join(listed_cleaned_data), "main_result": sentiment_analysis_main_data,
                     "other_result": sentiment_analysis_aditional_data, "user": uuid.UUID(self.payload['user_id']),
@@ -86,9 +92,15 @@ def task_celery_execute(video_url, payload, max_len):
         celery task
 
     Args:
-        video_url (Link): Youtube video url
-        max_len (int, optional): max fetching youtube comments. Defaults to 20.
+        video_url (Link): Youtube video url id.
+        payload (auth, sting, uuid): Getting user id from the access token after login from django.
+        application youtools.
+        max_len (int): max times fetching youtube comments. Defaults to 20.
+
+    Returns:
+        Returns: Return done if task run successfully, else will thow error if task failed to execute.
     """
+
     try:
         process = Procressing(video_url=video_url, payload=payload, max_len=max_len)
         process.task()
