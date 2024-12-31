@@ -8,6 +8,7 @@ import os
 from urllib.parse import quote_plus
 from flask import Flask
 from flask_caching import Cache
+from flask_cors import CORS
 from dotenv import load_dotenv
 from pymongo import MongoClient
 from .celery_task.celery_ import celery_init_app
@@ -17,6 +18,9 @@ load_dotenv()
 
 # Created new flask app
 app = Flask(__name__)
+
+# Added CORS
+CORS(app, resources={r"/*": {"origins": "http://localhost:5173"}})
 
 # Adding env for flash_caching
 app.config['CACHE_TYPE'] = os.environ.get('CACHE_TYPE')
@@ -49,7 +53,7 @@ username = quote_plus(os.environ.get("MONGO_DB_USER_NAME"))
 password = quote_plus(os.environ.get("MONGO_DB_PASSWORD"))
 host = os.environ.get("MONGO_DB_HOST_NAME")
 auth_source = os.environ.get("MONGO_DB_AUTH_SOURCE")
-port = int(os.environ.get("MONGO_DB_PORT"))
+port = int(os.environ.get("MONGO_CUSTOM_DB_PORT"))
 url = f"mongodb://{username}:{password}@{host}:{port}/?authSource={auth_source}"
 client = MongoClient(url, connect=False, uuidRepresentation="standard")
 

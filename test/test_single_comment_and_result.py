@@ -11,7 +11,7 @@ def test_single_comment_and_result(client, get_access_token, set_user_info, crea
         "Authorization": f"Bearer {access_token}",
         "Content-Type": "application/json",
     }
-    response = client.get(f"/get-youtube-comment-result/{comment1}", headers=headers)
+    response = client.get(f"/get-youtube-comment-result/{comment1}/", headers=headers)
     data = response.data.decode('utf-8')
     parsed_data = json.loads(data)
     assert 'data' in parsed_data
@@ -40,7 +40,7 @@ def test_single_comment_and_result_if_auth_is_not_provided(client, get_access_to
     user_info = set_user_info
     comment1 = create_comments1
     category_id = create_category
-    response = client.get(f"/get-youtube-comment-result/{comment1}")
+    response = client.get(f"/get-youtube-comment-result/{comment1}/")
     data = response.data.decode('utf-8')
     parsed_data = json.loads(data)
     assert 'data' not in parsed_data
@@ -62,7 +62,7 @@ def test_single_comment_and_result_if_wrong_auth_token_provided(client, get_acce
         "Authorization": f"Bearer {access_token}",
         "Content-Type": "application/json",
     }
-    response = client.get(f"/get-youtube-comment-result/{comment1}", headers=headers)
+    response = client.get(f"/get-youtube-comment-result/{comment1}/", headers=headers)
     data = response.data.decode('utf-8')
     parsed_data = json.loads(data)
     assert 'data' not in parsed_data

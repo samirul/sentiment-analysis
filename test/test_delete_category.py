@@ -11,7 +11,7 @@ def test_delete_category(client, get_access_token, set_user_info, create_categor
         "Content-Type": "application/json",
     }
 
-    response = client.delete(f"/delete-category/{category_id}", headers=headers)
+    response = client.delete(f"/delete-category/{category_id}/", headers=headers)
     assert response.status_code == 204
     category_db.delete_many({"user": user_info["_id"]})
     user.delete_one({"username": "cat1", "email": "cat1@cat.com"})
@@ -21,7 +21,7 @@ def test_delete_category(client, get_access_token, set_user_info, create_categor
 def test_delete_category_failed_for_no_auth(client, get_access_token, set_user_info, create_category):
     user_info = set_user_info
     category_id = create_category
-    response = client.delete(f"/delete-category/{category_id}")
+    response = client.delete(f"/delete-category/{category_id}/")
     data = response.data.decode('utf-8')
     parsed_data = json.loads(data)
     assert 'error' in parsed_data
@@ -41,7 +41,7 @@ def test_delete_category_failed_for_wrong_access_token(client, get_access_token,
         "Content-Type": "application/json",
     }
 
-    response = client.delete(f"/delete-category/{category_id}", headers=headers)
+    response = client.delete(f"/delete-category/{category_id}/", headers=headers)
     data = response.data.decode('utf-8')
     parsed_data = json.loads(data)
     assert 'error' in parsed_data

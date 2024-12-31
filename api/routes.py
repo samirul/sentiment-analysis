@@ -8,13 +8,13 @@ from collections import OrderedDict
 from bson.objectid import ObjectId
 from flask import request, jsonify, Response
 from api import app, sentiment_analysis_db, cache, category_db
-from api.tasks import task_celery_execute
+from api.tasks import task_run
 from api.producers import RabbitMQConnection
 from jwt_token.jwt_token_verify import jwt_login_required
 
 rabbit_mq = RabbitMQConnection()
 
-@app.route("/analysis-youtube-comments", methods=["POST"])
+@app.route("/analysis-youtube-comments/", methods=["POST"])
 @jwt_login_required
 def analysis_comments_from_youtube(payload):
     """Responsible for executing celery task sentiment analysis.
@@ -37,7 +37,7 @@ def analysis_comments_from_youtube(payload):
         if not max_len:
             response_data = json.dumps({"msg": "No max length found, input max length."}, indent=4)
             return Response(response_data, status=404, mimetype='application/json')
-        result = task_celery_execute.delay(video_url=inputed_text, payload=payload, max_len=max_len)
+        result = task_run.delay(video_url=inputed_text, payload=payload, max_len=max_len)
         return jsonify({"msg": "Success", "result_id": result.id, "result_status": result.status}),200
     except Exception as e:
         print(e)
@@ -46,7 +46,7 @@ def analysis_comments_from_youtube(payload):
     
 
     
-@app.route("/all-youtube-comments-results/<category_id>", methods=['GET'])
+@app.route("/all-youtube-comments-results/<category_id>/", methods=['GET'])
 @jwt_login_required
 def get_all_comments_and_results(payload, category_id):
     """Get all the data from MongoDB database.
@@ -93,7 +93,7 @@ def get_all_comments_and_results(payload, category_id):
         return Response(response_data, status=400, mimetype='application/json')
 
 
-@app.route("/get-youtube-comment-result/<ids>", methods=["GET"])
+@app.route("/get-youtube-comment-result/<ids>/", methods=["GET"])
 @jwt_login_required
 def get_single_comment_and_result(ids, payload):
     """Get single data from MongoDB database.
@@ -139,7 +139,7 @@ def get_single_comment_and_result(ids, payload):
         return Response(response_data, status=400, mimetype='application/json')
 
 
-@app.route("/delete-comment/<ids>", methods=['DELETE'])
+@app.route("/delete-comment/<ids>/", methods=['DELETE'])
 @jwt_login_required
 def delete_single_comment(ids, payload):
     """Delete single data from MongoDB database.
@@ -159,8 +159,8 @@ def delete_single_comment(ids, payload):
             response_data = json.dumps({"msg": "data is not found."}, indent=4)
             return Response(response_data, status=404, mimetype='application/json')
         if comment:
+            cache.delete(f"sentiment_analysis_all_data_{payload['user_id']}_{str(comment['category'])}")
             sentiment_analysis_db.delete_one({"_id": ObjectId(ids)})
-            # deleting cache data
             cache.delete(f"sentiment_analysis_by_{ids}_{payload['user_id']}")
             rabbit_mq.publish("delete_data_from_youtools_django", ids)
         return Response({}, status=204, mimetype='application/json')
@@ -170,7 +170,7 @@ def delete_single_comment(ids, payload):
         return Response(response_data, status=400, mimetype='application/json')
 
 
-@app.route("/all-categories", methods=['GET'])
+@app.route("/all-categories/", methods=['GET'])
 @jwt_login_required
 def get_all_categories(payload):
     """Get all the categories data from MongoDB database.
@@ -212,7 +212,7 @@ def get_all_categories(payload):
         return Response(response_data, status=400, mimetype='application/json')
 
 
-@app.route("/delete-category/<category_id>", methods=['DELETE'])
+@app.route("/delete-category/<category_id>/", methods=['DELETE'])
 @jwt_login_required
 def delete_category(payload, category_id):
     """Delete specific category data from MongoDB.
@@ -243,6 +243,47 @@ def delete_category(payload, category_id):
         print(e)
         response_data = json.dumps({"msg": "Something is wrong or bad request"}, indent=4)
         return Response(response_data, status=400, mimetype='application/json')
+    
+    
+@app.route("/task_status/<task_id>/", methods=['GET'])
+@jwt_login_required
+def task_status(payload, task_id):
+    task = task_run.AsyncResult(task_id)
+    if task.state == 'PENDING':
+        response = {
+            'state': task.state,
+            'progress': 0,
+            'details': 'Task is waiting to start.'
+        }
+    elif task.state == 'RUNNING':
+        info = task.info or {}
+        current = info.get('current', 0)
+        total = info.get('total', 1)
+        progress = (current / total) * 100 if total > 0 else 0
+        response = {
+            'state': task.state,
+            'progress': round(progress),
+            'details': info,
+        }
+    elif task.state == 'SUCCESS':
+        response = {
+            'state': task.state,
+            'progress': 100,
+            'details': task.info,
+        }
+    elif task.state == 'FAILURE':
+        response = {
+            'state': task.state,
+            'progress': 0,
+            'error': str(task.info),
+        }
+    else:
+        response = {
+            'state': task.state,
+            'progress': 0,
+            'details': 'Task is in an unexpected state.',
+        }
+    return jsonify(response)
     
 @app.route("/health", methods=['GET'])
 def health():
