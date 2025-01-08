@@ -13,7 +13,7 @@ def test_all_comments_and_result(client, get_access_token, set_user_info, create
         "Content-Type": "application/json",
     }
 
-    response = client.get(f"/all-youtube-comments-results/{category_id}", headers=headers)
+    response = client.get(f"/all-youtube-comments-results/{category_id}/", headers=headers)
     data = response.data.decode('utf-8')
     parsed_data = json.loads(data)
     assert 'id' in parsed_data['data'][0]
@@ -51,7 +51,7 @@ def test_all_comments_and_result(client, get_access_token, set_user_info, create
 def test_all_comments_and_result_failed_for_no_auth(client, get_access_token, set_user_info, create_category, create_comments1, create_comments15, create_comments2):
     user_info = set_user_info
     category_id = create_category
-    response = client.get(f"/all-youtube-comments-results/{category_id}")
+    response = client.get(f"/all-youtube-comments-results/{category_id}/")
     data = response.data.decode('utf-8')
     parsed_data = json.loads(data)
     assert 'data' not in parsed_data
@@ -73,7 +73,7 @@ def test_all_comments_and_result_failed_for_wrong_access_token(client, get_acces
         "Content-Type": "application/json",
     }
 
-    response = client.get(f"/all-youtube-comments-results/{category_id}", headers=headers)
+    response = client.get(f"/all-youtube-comments-results/{category_id}/", headers=headers)
     data = response.data.decode('utf-8')
     parsed_data = json.loads(data)
     assert 'data' not in parsed_data

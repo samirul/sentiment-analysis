@@ -9,15 +9,16 @@ services:
     environment:
       MONGO_INITDB_ROOT_USERNAME: ${MONGO_DB_USER_NAME}
       MONGO_INITDB_ROOT_PASSWORD: ${MONGO_DB_PASSWORD}
+    command: mongod --port ${MONGO_CUSTOM_DB_PORT}
     ports:
-      - $MONGO_DB_PORT:$MONGO_DB_PORT
+      - $MONGO_CUSTOM_DB_PORT:$MONGO_CUSTOM_DB_PORT
     volumes: 
-      - mongo-db-data:/data/db
-      - mongodb-log:/var/log/mongodb/
+      - mongo-db-data-sentiment_analysis:/data/db
+      - mongodb-log-sentiment_analysis:/var/log/mongodb/
     networks:
       - sentiment_analysis_network
     healthcheck:
-      test: echo 'db.runCommand({serverStatus:1}).ok' | mongosh admin -u $MONGO_DB_USER_NAME -p $MONGO_DB_PASSWORD --quiet | grep 1
+      test: echo 'db.runCommand({serverStatus:1}).ok' | mongosh --host $MONGO_DB_HOST_NAME --port $MONGO_CUSTOM_DB_PORT admin -u $MONGO_DB_USER_NAME -p $MONGO_DB_PASSWORD --quiet | grep 1
       interval: 10s
       timeout: 10s
       retries: 3
@@ -28,12 +29,13 @@ services:
     image: mongo-express:latest
     restart: always
     ports:
-      - $MONGO_DB_EXPRESS_PORT:$MONGO_DB_EXPRESS_PORT
+      - $MONGO_DB_EXPRESS_CUSTOM_PORT:$MONGO_DB_EXPRESS_PORT
     environment:
+      ME_CONFIG_SITE_BASEURL: "/"
       ME_CONFIG_MONGODB_ENABLE_ADMIN: true
       ME_CONFIG_MONGODB_ADMINUSERNAME: ${MONGO_DB_USER_NAME}
       ME_CONFIG_MONGODB_ADMINPASSWORD: ${MONGO_DB_PASSWORD}
-      ME_CONFIG_MONGODB_URL: mongodb://${MONGO_DB_USER_NAME}:${MONGO_DB_PASSWORD}@${MONGO_DB_HOST_NAME}:${MONGO_DB_PORT}/?authSource=${MONGO_DB_AUTH_SOURCE}
+      ME_CONFIG_MONGODB_URL: mongodb://${MONGO_DB_USER_NAME}:${MONGO_DB_PASSWORD}@${MONGO_DB_HOST_NAME}:${MONGO_CUSTOM_DB_PORT}/?authSource=${MONGO_DB_AUTH_SOURCE}
       ME_CONFIG_BASICAUTH_USERNAME: ${MONGO_EXPRESS_USERNAME}
       ME_CONFIG_BASICAUTH_PASSWORD: ${MONGO_EXPRESS_PASSWORD}
     networks:
@@ -47,12 +49,25 @@ services:
     image: redis:6.2-alpine
     restart: always
     ports:
-      - "6379:6379"
-    command: redis-server --requirepass $CACHE_REDIS_PASSWORD --save 20 1 --loglevel warning
+      - $CACHE_REDIS_PORT:$CACHE_REDIS_PORT
+    command: redis-server --port ${CACHE_REDIS_PORT} --requirepass $CACHE_REDIS_PASSWORD --save 20 1 --loglevel warning
     networks:
       - sentiment_analysis_network
     volumes:
-      - redis-cache-data:/data
+      - redis-cache-data-sentiment_analysis:/data
+
+  redis-insight_sentiment_analysis:
+    container_name: redis-insight_sentiment_analysis
+    image: redis/redisinsight:latest
+    ports:
+      - $REDIS_INSIGHT_CUSTOM_PORT:$REDIS_INSIGHT_PORT
+    environment:
+      RI_SERVER_PORT: ${REDIS_INSIGHT_PORT}
+    networks:
+      - sentiment_analysis_network
+    restart: always
+    volumes:
+      - redisinsight_data-sentiment_analysis:/db
 
   celery-sentiment_analysis:
     container_name: celery-sentiment_analysis
@@ -185,20 +200,22 @@ services:
       context: ./nginx
     restart: always
     ports:
-      - "80:80"
+      - $NGINX_PORT:$NGINX_PORT
     networks:
       - sentiment_analysis_network
     depends_on:
       - gunicorn-5004-sentiment_analysis
 
 volumes:
-  mongo-db-data:
+  mongo-db-data-sentiment_analysis:
     driver: local
-    name: mongo-data
-  mongodb-log:
+    name: mongo-data-sentiment_analysis
+  mongodb-log-sentiment_analysis:
     driver: local
-    name: mongo-log
-  redis-cache-data:
+    name: mongo-log-sentiment_analysis
+  redis-cache-data-sentiment_analysis:
+  redisinsight_data-sentiment_analysis:
+    driver: local
 
 networks:
   sentiment_analysis_network:

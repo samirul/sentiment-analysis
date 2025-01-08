@@ -11,7 +11,7 @@ def test_category_if_created(client, get_access_token, set_user_info, create_cat
         "Content-Type": "application/json",
     }
 
-    response = client.get("/all-categories", headers=headers)
+    response = client.get("/all-categories/", headers=headers)
     data = response.data.decode('utf-8')
     parsed_data = json.loads(data)
     assert 'id' in parsed_data["data"][0]
@@ -26,7 +26,7 @@ def test_category_if_created(client, get_access_token, set_user_info, create_cat
 
 
 def test_category_if_failed_to_get_without_auth(client, create_category, create_category2):
-    response = client.get("/all-categories", headers=None)
+    response = client.get("/all-categories/", headers=None)
     data = response.data.decode('utf-8')
     parsed_data = json.loads(data)
     print(parsed_data)
@@ -45,7 +45,7 @@ def test_category_if_failed_for_wrong_access_token(client, get_access_token, set
         "Content-Type": "application/json",
     }
 
-    response = client.get("/all-categories", headers=headers)
+    response = client.get("/all-categories/", headers=headers)
     data = response.data.decode('utf-8')
     parsed_data = json.loads(data)
     assert 'data' not in parsed_data
