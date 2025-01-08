@@ -13,8 +13,8 @@ services:
     ports:
       - $MONGO_CUSTOM_DB_PORT:$MONGO_CUSTOM_DB_PORT
     volumes: 
-      - mongo-db-data:/data/db
-      - mongodb-log:/var/log/mongodb/
+      - mongo-db-data-sentiment_analysis:/data/db
+      - mongodb-log-sentiment_analysis:/var/log/mongodb/
     networks:
       - sentiment_analysis_network
     healthcheck:
@@ -54,7 +54,7 @@ services:
     networks:
       - sentiment_analysis_network
     volumes:
-      - redis-cache-data:/data
+      - redis-cache-data-sentiment_analysis:/data
 
   redis-insight_sentiment_analysis:
     container_name: redis-insight_sentiment_analysis
@@ -67,7 +67,7 @@ services:
       - sentiment_analysis_network
     restart: always
     volumes:
-      - redisinsight_data:/db
+      - redisinsight_data-sentiment_analysis:/db
 
   celery-sentiment_analysis:
     container_name: celery-sentiment_analysis
@@ -207,15 +207,14 @@ services:
       - gunicorn-5004-sentiment_analysis
 
 volumes:
-  mongo-db-data:
+  mongo-db-data-sentiment_analysis:
     driver: local
-    name: mongo-data
-  mongodb-log:
+    name: mongo-data-sentiment_analysis
+  mongodb-log-sentiment_analysis:
     driver: local
-    name: mongo-log
-  redis-cache-data:
-  volumes:
-  redisinsight_data:
+    name: mongo-log-sentiment_analysis
+  redis-cache-data-sentiment_analysis:
+  redisinsight_data-sentiment_analysis:
     driver: local
 
 networks:
