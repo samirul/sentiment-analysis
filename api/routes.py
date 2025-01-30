@@ -237,6 +237,7 @@ def delete_category(payload, category_id):
             category_db.delete_one({"_id": ObjectId(category_id)})
             sentiment_analysis_db.delete_many({"category": ObjectId(category_id)})
             cache.delete(f"sentiment_analysis_all_data_{payload['user_id']}_{category_id}")
+            cache.delete(f"categories_sentiment_analysis_all_data_{payload['user_id']}")
             rabbit_mq.publish("delete_data_and_category_from_django_category", category_id)
         return Response({}, status=204, mimetype='application/json')
     except Exception as e:
