@@ -48,7 +48,7 @@ class Comments:
             # getting you tube comments and storing them in the queue
             for item in response['items']:
                 comments = item['snippet']['topLevelComment']['snippet']['textDisplay']
-                queue.append(comments)
+                queue.appendleft(comments)
             return queue
         except Exception as e:
             return e
