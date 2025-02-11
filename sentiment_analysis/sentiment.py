@@ -1,6 +1,6 @@
 """     
     Added sentiment analysis model for analysis text if positive
-    or negetive or nutral.
+    or negetive or neutral.
 """
 
 from transformers import pipeline

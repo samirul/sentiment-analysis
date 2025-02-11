@@ -34,7 +34,7 @@ class RabbitMQConnection:
 
         Args:
             method (string): Send custom string for identifying data by consumer.
-            body (_type_): Sending json type body data to consumer.
+            body (json): Sending json type body data to consumer.
         """
         channel = self.connect()
         if isinstance(body, dict):
