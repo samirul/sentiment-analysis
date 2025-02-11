@@ -24,7 +24,7 @@ class RabbitMQConsumer:
             params = pika.URLParameters(self.rabbitmq_url)
             connection = pika.BlockingConnection(params)
             channel = connection.channel()
-            channel.queue_declare(queue='sent_user_data-queue_sentiment_analysis_flask')
+            channel.queue_declare(queue='sent_data-queue_sentiment_analysis_flask')
 
             def callback(ch, method, properties, body):
                 """Responsible for getting properties type and
@@ -71,7 +71,7 @@ class RabbitMQConsumer:
                         # Log or handle errors during message processing
                         print(f"Error processing message: {e}")
                 # Start consuming messages from 'django_app' queue
-            channel.basic_consume(queue='sent_user_data-queue_sentiment_analysis_flask', on_message_callback=callback, auto_ack=True)
+            channel.basic_consume(queue='sent_data-queue_sentiment_analysis_flask', on_message_callback=callback, auto_ack=True)
             print('Waiting for messages....')
             channel.start_consuming()
 
