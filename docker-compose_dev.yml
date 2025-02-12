@@ -71,13 +71,11 @@ services:
 
   celery-sentiment_analysis:
     container_name: celery-sentiment_analysis
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: sentiment-analysis-image
     command: bash -c "source /virtual-py/bin/activate && celery -A api.celery_app worker --loglevel=info --concurrency=$(nproc)"
     volumes:
       - .:/sentiment-analysis-app
-      - sentiment-analysis-model:/vol/model/sentiment-analysis-model/
+      - sentiment-analysis-model:/vol/model/
     environment:
       - CELERY_BROKER=${CELERY_BROKER}
       - CELERY_BACKEND=${CELERY_BACKEND}
@@ -215,8 +213,14 @@ volumes:
     driver: local
     name: mongo-log-sentiment_analysis
   redis-cache-data-sentiment_analysis:
+    driver: local
+    name: redis-cache-data-sentiment_analysis
   redisinsight_data-sentiment_analysis:
     driver: local
+    name: redisinsight_data-sentiment_analysis
+  sentiment-analysis-model:
+    driver: local
+    name: sentiment-analysis-model
 
 networks:
   sentiment_analysis_network:
