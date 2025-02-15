@@ -14,6 +14,8 @@ RUN python -m venv /virtual-py && \
     chown -R sentiment-analysis-user:sentiment-analysis-user /vol && \
     chmod -R 755 /vol
 
+ENV PATH="/scripts:/virtual-py/bin:$PATH"
+
 USER sentiment-analysis-user
 
 
