@@ -76,6 +76,8 @@ services:
     volumes:
       - .:/sentiment-analysis-app
       - sentiment-analysis-model:/vol/model/
+    env_file:
+      - ".env"
     environment:
       - CELERY_BROKER=${CELERY_BROKER}
       - CELERY_BACKEND=${CELERY_BACKEND}

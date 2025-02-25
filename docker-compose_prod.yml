@@ -91,7 +91,7 @@ services:
   
   consumers-sentiment_analysis:
     container_name: consumers-sentiment_analysis
-    image: sentiment-analysis-image
+    image: samirul08/sentiment-analysis-project
     env_file:
       - ".env"
     command: bash -c "source /virtual-py/bin/activate && python3 consumers.py"
@@ -106,11 +106,13 @@ services:
 
   celery-sentiment_analysis:
     container_name: celery-sentiment_analysis
-    image: sentiment-analysis-image
+    image: samirul08/sentiment-analysis-project
     command: bash -c "source /virtual-py/bin/activate && celery -A api.celery_app worker --loglevel=info --concurrency=$(nproc)"
     restart: always
     volumes:
       - sentiment-analysis-model:/vol/model/
+    env_file:
+      - ".env"
     environment:
       - CELERY_BROKER=${CELERY_BROKER}
       - CELERY_BACKEND=${CELERY_BACKEND}
@@ -132,7 +134,7 @@ services:
 
   gunicorn-5001-sentiment_analysis:
     container_name: gunicorn-5001-sentiment_analysis
-    image: sentiment-analysis-image
+    image: samirul08/sentiment-analysis-project
     restart: always
     ports:
       - 5001:5001
@@ -152,7 +154,7 @@ services:
 
   gunicorn-5002-sentiment_analysis:
     container_name: gunicorn-5002-sentiment_analysis
-    image: sentiment-analysis-image
+    image: samirul08/sentiment-analysis-project
     restart: always
     ports:
       - 5002:5002
@@ -172,7 +174,7 @@ services:
 
   gunicorn-5003-sentiment_analysis:
     container_name: gunicorn-5003-sentiment_analysis
-    image: sentiment-analysis-image
+    image: samirul08/sentiment-analysis-project
     restart: always
     ports:
       - 5003:5003
@@ -192,7 +194,7 @@ services:
 
   gunicorn-5004-sentiment_analysis:
     container_name: gunicorn-5004-sentiment_analysis
-    image: sentiment-analysis-image
+    image: samirul08/sentiment-analysis-project
     restart: always
     ports:
       - 5004:5004
@@ -211,8 +213,7 @@ services:
         condition: service_healthy
 
   nginx-sentiment_analysis:
-    build:
-      context: ./nginx
+    image: samirul08/nginx-sentiment_analysis
     restart: always
     deploy:
       resources:
