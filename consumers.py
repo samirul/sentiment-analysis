@@ -15,14 +15,28 @@ class RabbitMQConsumer:
         self.rabbitmq_url = os.environ.get('RABBITMQ_URL')
 
     def connect_consumer(self):
-        """This function will get user data from django application youtools and save on the mongoDB database"""
+        """This function will Connect to the RabbitMQ Queue
+            and then will get messages from the youtools
+            producer. Tasks will get executed based on events
+            and result will save on the mongoDB database.
+        """
         try:
             params = pika.URLParameters(self.rabbitmq_url)
             connection = pika.BlockingConnection(params)
             channel = connection.channel()
-            channel.queue_declare(queue='sent_user_data-queue_sentiment_analysis_flask')
+            channel.queue_declare(queue='sent_data-queue_sentiment_analysis_flask')
 
             def callback(ch, method, properties, body):
+                """Responsible for getting properties type and
+                    json data from producer and execute it in current consumer. 
+
+                Args:
+                    ch (Parameter): Not used but needed.
+                    method (Parameter): Not used but needed.
+                    properties (Parameter): for getting properties type so can execute.
+                    specific task needed from producer to consumer.
+                    body (Parameter): json data from the producer.
+                """
                 try:
                     print("message receiving....")
                     if properties.type == 'user_is_created':
@@ -57,7 +71,7 @@ class RabbitMQConsumer:
                         # Log or handle errors during message processing
                         print(f"Error processing message: {e}")
                 # Start consuming messages from 'django_app' queue
-            channel.basic_consume(queue='sent_user_data-queue_sentiment_analysis_flask', on_message_callback=callback, auto_ack=True)
+            channel.basic_consume(queue='sent_data-queue_sentiment_analysis_flask', on_message_callback=callback, auto_ack=True)
             print('Waiting for messages....')
             channel.start_consuming()
 

@@ -1,1 +1,7 @@
 sentiment-analysis-model
+.env
+.pytest_cache
+test.py
+test2.py
+.git
+__pycache__

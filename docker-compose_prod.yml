@@ -15,6 +15,11 @@ services:
     volumes: 
       - mongo-db-data-sentiment_analysis:/data/db
       - mongodb-log-sentiment_analysis:/var/log/mongodb/
+    deploy:
+      resources:
+          limits:
+            cpus: "2.0"
+            memory: 500M
     networks:
       - sentiment_analysis_network
     healthcheck:
@@ -38,6 +43,11 @@ services:
       ME_CONFIG_MONGODB_URL: mongodb://${MONGO_DB_USER_NAME}:${MONGO_DB_PASSWORD}@${MONGO_DB_HOST_NAME}:${MONGO_CUSTOM_DB_PORT}/?authSource=${MONGO_DB_AUTH_SOURCE}
       ME_CONFIG_BASICAUTH_USERNAME: ${MONGO_EXPRESS_USERNAME}
       ME_CONFIG_BASICAUTH_PASSWORD: ${MONGO_EXPRESS_PASSWORD}
+    deploy:
+      resources:
+          limits:
+            cpus: "1.0"
+            memory: 200M
     networks:
       - sentiment_analysis_network
     depends_on:
@@ -51,6 +61,11 @@ services:
     ports:
       - $CACHE_REDIS_PORT:$CACHE_REDIS_PORT
     command: redis-server --port ${CACHE_REDIS_PORT} --requirepass $CACHE_REDIS_PASSWORD --save 20 1 --loglevel warning
+    deploy:
+      resources:
+          limits:
+            cpus: "2.0"
+            memory: 500M
     networks:
       - sentiment_analysis_network
     volumes:
@@ -63,18 +78,38 @@ services:
       - $REDIS_INSIGHT_CUSTOM_PORT:$REDIS_INSIGHT_PORT
     environment:
       RI_SERVER_PORT: ${REDIS_INSIGHT_PORT}
+    deploy:
+      resources:
+          limits:
+            cpus: "1.0"
+            memory: 200M
     networks:
       - sentiment_analysis_network
     restart: always
     volumes:
       - redisinsight_data-sentiment_analysis:/db
+  
+  consumers-sentiment_analysis:
+    container_name: consumers-sentiment_analysis
+    image: samirul08/sentiment-analysis-project
+    env_file:
+      - ".env"
+    command: bash -c "source /virtual-py/bin/activate && python3 consumers.py"
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 200M
+    networks:
+      - sentiment_analysis_network
+    restart: always
 
   celery-sentiment_analysis:
     container_name: celery-sentiment_analysis
-    image: sentiment-analysis-image
+    image: samirul08/sentiment-analysis-project
     command: bash -c "source /virtual-py/bin/activate && celery -A api.celery_app worker --loglevel=info --concurrency=$(nproc)"
+    restart: always
     volumes:
-      - .:/sentiment-analysis-app
       - sentiment-analysis-model:/vol/model/
     env_file:
       - ".env"
@@ -88,118 +123,103 @@ services:
         condition: service_healthy
       redis-sentiment_analysis:
         condition: service_started
-      sentiment-analysis-project:
-        condition: service_started
     deploy:
       resources:
-        reservations:
-          devices:
-            - capabilities: [gpu]
-
-  sentiment-analysis-project:
-    container_name: sentiment-analysis-project
-    build:
-      context: .
-      dockerfile: Dockerfile
-    image: sentiment-analysis-image
-    ports:
-      - "5000:5000"
-    env_file:
-      - ".env"
-    volumes:
-      - .:/sentiment-analysis-app
-    command: bash -c "source /virtual-py/bin/activate && python3 -m pytest -s -v && python3 run.py"
-    networks:
-      - sentiment_analysis_network
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
-      interval: 10s
-      timeout: 5s
-      retries: 3
-      start_period: 20s
-    depends_on:
-      mongoDB-sentiment_analysis:
-        condition: service_healthy
-      redis-sentiment_analysis:
-        condition: service_started
-    deploy:
-      resources:
+        limits:
+          cpus: "4.0"
+          memory: 4124M
         reservations:
           devices:
             - capabilities: [gpu]
 
   gunicorn-5001-sentiment_analysis:
     container_name: gunicorn-5001-sentiment_analysis
-    image: sentiment-analysis-image
+    image: samirul08/sentiment-analysis-project
     restart: always
     ports:
       - 5001:5001
     env_file:
       - ".env"
     command: bash -c "source /virtual-py/bin/activate && gunicorn --bind 0.0.0.0:5001 run:app"
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 300M
     networks:
       - sentiment_analysis_network
     depends_on:
       mongoDB-sentiment_analysis:
         condition: service_healthy
-      sentiment-analysis-project:
-        condition: service_healthy
 
   gunicorn-5002-sentiment_analysis:
     container_name: gunicorn-5002-sentiment_analysis
-    image: sentiment-analysis-image
+    image: samirul08/sentiment-analysis-project
     restart: always
     ports:
       - 5002:5002
     env_file:
       - ".env"
     command: bash -c "source /virtual-py/bin/activate && gunicorn --bind 0.0.0.0:5002 run:app"
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 300M
     networks:
       - sentiment_analysis_network
     depends_on:
       mongoDB-sentiment_analysis:
         condition: service_healthy
-      sentiment-analysis-project:
-        condition: service_healthy
 
   gunicorn-5003-sentiment_analysis:
     container_name: gunicorn-5003-sentiment_analysis
-    image: sentiment-analysis-image
+    image: samirul08/sentiment-analysis-project
     restart: always
     ports:
       - 5003:5003
     env_file:
       - ".env"
     command: bash -c "source /virtual-py/bin/activate && gunicorn --bind 0.0.0.0:5003 run:app"
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 300M
     networks:
       - sentiment_analysis_network
     depends_on:
       mongoDB-sentiment_analysis:
         condition: service_healthy
-      sentiment-analysis-project:
-        condition: service_healthy
 
   gunicorn-5004-sentiment_analysis:
     container_name: gunicorn-5004-sentiment_analysis
-    image: sentiment-analysis-image
+    image: samirul08/sentiment-analysis-project
     restart: always
     ports:
       - 5004:5004
     env_file:
       - ".env"
     command: bash -c "source /virtual-py/bin/activate && gunicorn --bind 0.0.0.0:5004 run:app"
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 300M
     networks:
       - sentiment_analysis_network
     depends_on:
       mongoDB-sentiment_analysis:
         condition: service_healthy
-      sentiment-analysis-project:
-        condition: service_healthy
 
   nginx-sentiment_analysis:
-    build:
-      context: ./nginx
+    image: samirul08/nginx-sentiment_analysis
     restart: always
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 300M
     ports:
       - $NGINX_PORT:$NGINX_PORT
     networks:

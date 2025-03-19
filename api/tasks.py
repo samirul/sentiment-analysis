@@ -55,7 +55,7 @@ def task_run(self, video_url, payload, max_len, device='cuda', top_k=None):
                 category_db.insert_one({"category_name": titles, "user": uuid.UUID(payload["user_id"])})
 
             if categories:
-                data = comments.popleft() # getting unfiltered datas from queue
+                data = comments.pop() # getting unfiltered datas from queue
                 cleaned_data = Filter(text=data) # filtering unfiltered data
                 listed_cleaned_data = list(cleaned_data.clean()) # cleaned data
                 sentiment_analysis = SentiMental(text=listed_cleaned_data, device=device, top_k=top_k)
